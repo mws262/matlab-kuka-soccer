@@ -7,7 +7,7 @@ function [ppx, ppy] = nlp_spline(breaks, knots, pinned_spacing, adjacent_segment
 % "Squareness" is tuned with adjacent_segment_product_scaling (0-1) (higher ==
 % more). "Squareness" is achieved by having a cost associated with the
 % PRODUCT of adjacent segment's integrals of acceleration.
-periodic = true;
+periodic = false;
 
 %% Formulate the problem symbolically TODO: well... don't do that.
 pts = pinned_spacing*size(knots,1) - pinned_spacing + 1;
