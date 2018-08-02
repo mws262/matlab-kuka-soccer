@@ -9,8 +9,8 @@ addpath ./vis;
 I_num = 1;
 m_num = 1;
 R_num = 0.1;
-
-zero_accel_tol = 1e-3;
+course_offset = [0.35, 0, 0];
+zero_accel_tol = 1e-2;
 
 % Load a path previously acquired from optimization.
 load_saved_path = true;
@@ -27,10 +27,10 @@ if exist(saved_path_name, 'file') && load_saved_path
 else
     % Figure 8 parameters.
     segs_between = 3; % One of the most important parameters. Will change the number of extra segments between required knot points.
-    time_scaling = 15; % Time to make one cycle along the 8.
-    lobe_length = 2; % Parameters to stretch the 8.
-    lobe_width = 1;
-    lobe_center_offset = 0.25;
+    time_scaling = 5; % Time to make one cycle along the 8.
+    lobe_length = 0.5; % Parameters to stretch the 8.
+    lobe_width = 0.2;
+    lobe_center_offset = 0.0;
     height = 0; % Height of path off the ground. I see no reason to change this.
     
     % Points which must be passed through.
@@ -42,7 +42,7 @@ else
         lobe_width, -lobe_length/2 - lobe_center_offset, height;
         0, -lobe_length, height;
         -lobe_width, -lobe_length/2 - lobe_center_offset, height;
-        0, 0, height]';
+        0, 0, height]' - course_offset;
     
     num_knots = size(knots,2);
     % Times at each point.
@@ -195,18 +195,20 @@ linear_boundary_velocity_arrows_end.WData = boundary_vel_arrow_scale*contact_vel
 linear_boundary_velocity_arrows_end.Color = [1,1,0];
 linear_boundary_velocity_arrows_end.LineWidth = 1;
 
-hold off;
+% Adds the arm to the world.
+iiwa_vis = IIWAImporter(scene_fig);
 
 % Whole scene settings.
 axis([-3, 3, -3, 3]);
 daspect([1,1,1]);
 ax = scene_fig.Children;
 
+hold off;
 ax.Projection = 'perspective';
 ax.Clipping = 'off';
 ax.Visible = 'off';
 scene_fig.Position = [0, 0, 1200, 1500];
-ax.CameraPosition = [2.4554   -3.6831    3.5];
+ax.CameraPosition = [-2.4, -1.6, 1.8];
 ax.CameraTarget = [0, 0, 0];
 scene_fig.WindowKeyPressFcn = @key_callback;
 scene_fig.WindowScrollWheelFcn = @mousewheel_callback;
@@ -214,7 +216,6 @@ camva(40);
 light1 = light();
 light1.Position = [10,10,40];%ax.CameraPosition;
 light1.Style = 'infinite';
-
 
 %% Pre-evaluate some stuff before animating and just interpolate in time later.
 % Probably only really minor computational savings. Oh well.
@@ -313,11 +314,13 @@ hold on;
 % Change the pusher-plane size to match the minimum size needed for all the
 % manuevers.
 plane_patch.Vertices(:,1) = max_range_x .* plane_patch_verts(:,1);
-plane_patch.Vertices(:,2) = max_range_y .* plane_patch_verts(:,2);
+plane_patch.Vertices(:,3) = max_range_y .* plane_patch_verts(:,3); % 3rd component because it's been rotated from its creation orientation.
+plane_patch_verts = plane_patch.Vertices;
 
 
-outward_scoop_dist = 0.15;
-above_scoop_dist = 0.5;
+outward_scoop_dist = 0.1;
+outward_upward_scoop_dist = 0.05;
+above_scoop_dist = 0.3;
 %% Make connecting splines.
 connecting_pps = {};
 for i = 1:size(ball_linear_starts,1)
@@ -341,7 +344,7 @@ for i = 1:size(ball_linear_starts,1)
     way_dir_st = -sign(dot(lin_st_accel, lin_perp));
     way_dir_e =  -sign(dot(lin_e_accel, lin_perp));
     if way_dir_st*way_dir_e == 1 % Same sign. We want to scoop outwards around the ball.
-        lin_waypt = lin_perp*way_dir_st*outward_scoop_dist + (lin_e + lin_st)/2 + [0, 0, 0.1];
+        lin_waypt = lin_perp*way_dir_st*outward_scoop_dist + (lin_e + lin_st)/2 + [0, 0, outward_upward_scoop_dist];
     else
         lin_waypt = (lin_e + lin_st)/2 + [0, 0, above_scoop_dist]; % Different sign. Let's go over. We need to switch sides of the ball.
     end
@@ -362,14 +365,26 @@ plane_x_offset_offset = -touch_section_ends(1,1);
 plane_y_offset_offset = -touch_section_ends(1,2);
 hold off;
 
+if ~isempty(connecting_pps)
+    link_name = 'iiwa_link_ee'; % Tip of ee. iiwa_link_ee is just the last full link.
+    home = iiwa_vis.home_config;
+    guess = home;
+    numpts = 2;
+    tform_init = getIIWATForm(iiwa_vis, home, link_name);
+    tform_way1 = trvec2tform(ppval(connecting_pps{1}, connecting_pps{1}.breaks(1):0.05:connecting_pps{1}.breaks(end))');
+    iiwa_configs = make_simple_trajectory(iiwa_vis, tform_init, tform_way1, home, link_name, numpts);
+    % iiwa_configs = make_multi_point_trajectory(iiwa_vis, tform_way1, home, link_name);
+    iiwa_breaks = linspace(0, connecting_pps{1}.breaks(end), 2);
+end
+
 %% Animation loop.
 animation_speed_factor = 0.3;
-
+update_arm = true;
 linear_boundary_velocity_arrows_end.Visible = 'off';
 linear_boundary_velocity_arrows_start.Visible = 'off';
 
 % Video recording if desired
-write_to_vid = false;
+write_to_vid = true;
 if write_to_vid
     framerate = 30;
     vid_writer = VideoWriter('make_8_vid.avi'); % Convert for Slack with 'ffmpeg -i infile.avi youroutput.mp4'
@@ -384,10 +399,13 @@ tic;
 prev_time = 0;
 curr_time= 0;
 
-
 while (curr_time < tspan(end))
     h = curr_time - prev_time; % Time interval of this loop iteration.
     
+    if ~isempty(connecting_pps)
+        joint_pos_struct = interpolate_traj(iiwa_vis, iiwa_breaks, iiwa_configs, curr_time);
+        display_at_pose(iiwa_vis, joint_pos_struct);
+    end
     % Interpolate data for the current plotting time.
     wInterp = interp1(tspan, w_num, curr_time); % Angular rate.
     wQInterp = interp1(tspan, w_numQ, curr_time);
@@ -457,10 +475,13 @@ while (curr_time < tspan(end))
             plane_y_offset*derived_eqns.jsurf_fcn(accelsInterp(1), accelsInterp(2), 0) + push_arc_center_world_interp;
         
         plane_patch.Vertices = (plane_rotation*(plane_patch_verts)')' + tformed_offset;
-        
+        if update_arm
+            eetform = [[plane_rotation; 0, 0, 0], [(push_arc_center_world_interp' + 0.5* push_arc_center_interp'); 1]]; % Make 4x4 transformation out of rotation and translation.
+            jnt_angs = single_ik_call(iiwa_vis, eetform, guess, link_name);
+            display_at_pose(iiwa_vis, jnt_angs);
+        end
     else
         %% Manipulator path is solely based on calculated COM trajectory. Does not need shifting.
-        
         push_arc_plot.Visible = 'off'; % Don't need push/contact info.
         surface_vel_arrows.Visible = 'off';
         
@@ -491,12 +512,14 @@ while (curr_time < tspan(end))
                 plane_center_dot.XData = move_spline_eval(1);
                 plane_center_dot.YData = move_spline_eval(2);
                 plane_center_dot.ZData = move_spline_eval(3);
+                
+                if update_arm
+                    jnt_angs = single_ik_call(iiwa_vis, trvec2tform(move_spline_eval), guess, link_name);
+                    display_at_pose(iiwa_vis, jnt_angs);
+                end
                 break;
             end
         end
-        
-        %          plane_x_offset_offset = interp1(tspan, surfx_integral_eval, curr_time);
-        %          plane_y_offset_offset = interp1(tspan, surfy_integral_eval, curr_time);
     end
     
     drawnow;

@@ -1,5 +1,5 @@
 function derived_eqns = do_derivations()
-    syms fax fay faz fn ffx ffy rx ry vx vy ax ay wx wy wz wdx wdy wdz mu theta real;
+    syms fax fay faz fn ffx ffy rx ry vx vy ax ay wx wy wz wdx wdy wdz fric_coeff theta real;
     syms g m I R positive;
     % g - gravity
     % m - ball mass
@@ -21,7 +21,7 @@ function derived_eqns = do_derivations()
     % wdx - angular acceleration of ball about x axis
     % wdy - angular acceleration of ball about y axis
     % wdz - angular acceleration of ball about z axis
-    % mu - ground to ball friction coefficient.
+    % fric_coeff - ground to ball friction coefficient.
     % theta - angle from horizontal along ball arc which force is applied
     
     disp('Running derivations.');
@@ -57,7 +57,7 @@ function derived_eqns = do_derivations()
     
     % Friction cone requirement. NOT YET USED.
     friction_required = sqrt(ffx_solve^2 + ffy_solve^2);
-    friction_max = Fnormal*mu;
+    friction_max = Fnormal*fric_coeff;
     
     force_xy_desired = sqrt(fax_solve.^2 + fay_solve.^2); % X and Y forces needed to do this motion.
     
