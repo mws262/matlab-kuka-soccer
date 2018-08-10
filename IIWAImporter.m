@@ -2,11 +2,14 @@ classdef IIWAImporter
     properties
         robot;
         ik;
+        gik;
+        height_constraint;
+        position_target;
         home_config;
         link_patches;
         hgtransforms;
         home_transforms_inverse;
-        weights = [0.5 0.5 0.5 1 1 1];
+        weights = [1 1 1 1 1 1];
     end
     methods
         function obj = IIWAImporter(fig_handle)
@@ -15,7 +18,27 @@ classdef IIWAImporter
             
             %% Use MATLAB's robot toolbox to pull stuff in.
             obj.ik = robotics.InverseKinematics('RigidBodyTree', obj.robot);
-            obj.ik.SolverParameters.AllowRandomRestart = false;
+           obj.ik.SolverParameters.AllowRandomRestart = true;
+           obj.ik.SolverParameters.SolutionTolerance = 1e-12;
+           obj.ik.SolverParameters.EnforceJointLimits = true;
+
+            
+            obj.gik = robotics.GeneralizedInverseKinematics('RigidBodyTree', obj.robot, 'ConstraintInputs', {'cartesian', 'position'});
+            
+            % Make a constraint for each body which shouldn't be too close
+            % to the ground.
+            obj.height_constraint = cell(1, length(obj.robot.BodyNames) - 2);
+            for i = 3:length(obj.robot.BodyNames)
+                obj.height_constraint{i - 2} = robotics.CartesianBounds(obj.robot.BodyNames{i});
+                obj.height_constraint{i - 2}.Bounds = [-inf, inf; -inf, inf; 0.01, inf];
+            end
+            
+            obj.position_target = robotics.PositionTarget('iiwa_link_0');
+            obj.position_target.TargetPosition([1,1,1]);
+            obj.position_target.ReferenceBody = 'iiwa_link_ee';
+            obj.position_target.PositionTolerance = 0.01;
+            
+            
             obj.home_config = obj.robot.homeConfiguration; % Straight up home configuration.
             fig_orig = figure(101); % This is just a temporary holder for the imported model. Unfortunately MATLAB doesn't provide the functions I want.
             fig_orig.Visible = 'off';
@@ -61,26 +84,37 @@ classdef IIWAImporter
         function tform = getIIWATForm(obj, config, body_part_name)
             tform = getTransform(obj.robot, config, body_part_name);
         end
- 
-        function jnt_angle = single_ik_call(obj, tform, guess, body_part_name)
-            jnt_angle = obj.ik(body_part_name, tform, obj.weights, guess); % Keep using the prev solution as the guess for the next. 
+        
+        function [jnt_angle, solinfo] = single_ik_call(obj, tform, guess, body_part_name)
+            [jnt_angle, solinfo] = obj.ik(body_part_name, tform, obj.weights, guess); % Keep using the prev solution as the guess for the next.
         end
         
-        function jnt_angles = make_simple_trajectory(obj, tform1, tform2, guess, body_part_name, numpts)
+        function jnt_angle = single_constrained_ik_call(obj, tform, guess, body_part_name)
+            obj.position_target.TargetPosition = tform(1:3,4)';
+            jnt_angle = obj.gik(guess, obj.height_constraint{end}, obj.position_target); % Keep using the prev solution as the guess for the next.
+        end
+        
+        function [jnt_angles, sol_info] = make_simple_trajectory(obj, tform1, tform2, guess, body_part_name, numpts)
             traj = exampleHelperSE3Trajectory( tform1, tform2, numpts );
             
-            jnt_angles = cell(1,numpts);
+            jnt_angles = cell(1, numpts);
+            sol_info = cell(1, numpts);
+            
             for i = 1:size(traj,3)
-                guess = obj.ik(body_part_name, traj(:,:,i), obj.weights, guess); % Keep using the prev solution as the guess for the next.
+                [guess, solinfo] = obj.ik(body_part_name, traj(:,:,i), obj.weights, guess); % Keep using the prev solution as the guess for the next.
                 jnt_angles{i} = guess;
+                sol_info{i} = solinfo;
             end
         end
         
-        function jnt_angles = make_multi_point_trajectory(obj, tform_list, guess, body_part_name)
-            jnt_angles = cell(1,size(tform_list,3));
+        function [jnt_angles, sol_info] = make_multi_point_trajectory(obj, tform_list, guess, body_part_name)
+            jnt_angles = cell(1, size(tform_list,3));
+            sol_info = cell(1, size(tform_list,3));
+
             for i = 1:size(tform_list,3)
-                guess = obj.ik(body_part_name, tform_list(:,:,i), obj.weights, guess); % Keep using the prev solution as the guess for the next.
+                [guess, solinfo] = obj.ik(body_part_name, tform_list(:,:,i), obj.weights, guess); % Keep using the prev solution as the guess for the next.
                 jnt_angles{i} = guess;
+                sol_info{i} = solinfo;
             end
         end
         
@@ -110,15 +144,15 @@ classdef IIWAImporter
                 dt = breaks(idx_above) - breaks(idx_below);
                 lower = [configs{idx_below}.JointPosition];
                 upper = [configs{idx_above}.JointPosition];
-               
-                interp_mat = (curr_time - breaks(idx_below))/dt * (upper - lower) + lower; 
+                
+                interp_mat = (curr_time - breaks(idx_below))/dt * (upper - lower) + lower;
                 
                 joint_pos_struct = configs{1};
                 for i = 1:length(interp_mat)
-                   joint_pos_struct(i).JointPosition = interp_mat(i);
+                    joint_pos_struct(i).JointPosition = interp_mat(i);
                 end
                 return;
-            end 
+            end
         end
     end
 end
