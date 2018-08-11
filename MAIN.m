@@ -4,13 +4,14 @@ clear all; close all;
 % (continuous velocity and acceleration at the end to beginning
 % transition).
 addpath ./vis;
-addpath ./derived_autogen
+addpath ./path_optim;
+addpath ./derived_autogen;
 
 % System parameters.
 I_num = 1;
 m_num = 1;
 R_num = 0.1;
-course_offset = [0.35, 0, 0];
+course_offset = [0.35, 0, 0]';
 zero_accel_tol = 1e-2;
 plane_tilt = 0/3;
 
@@ -18,7 +19,7 @@ tilt_rot = [1 0 0; 0 cos(plane_tilt) sin(plane_tilt); 0 -sin(plane_tilt) cos(pla
 
 % Load a path previously acquired from optimization.
 load_saved_path = true;
-saved_path_name = 'path_data.mat';
+saved_path_name = './data/path_data.mat';
 
 % Load, rather than re-evaluated equation derivations.
 rederive_equations = false;
@@ -87,13 +88,8 @@ applied_fy_eval = y_force_required_fcn(I_num, R_num, accelerations(:,2), m_num);
 quiver(positions(1:f_vec_spacing:end,1), positions(1:f_vec_spacing:end,2), f_vec_scaling*applied_fx_eval(1:f_vec_spacing:end), f_vec_scaling*applied_fy_eval(1:f_vec_spacing:end));
 
 % Make the ball as a patch object.
-[sphere_x,sphere_y,sphere_z] = sphere(25);
-ball_patch = patch(surf2patch(R_num * sphere_x, R_num * sphere_y, R_num * sphere_z, 100*R_num * sphere_z));
-ball_verts_untransformed = ball_patch.Vertices;
-ball_patch.Vertices = ball_verts_untransformed + repmat(positions(1,:)  + [0, 0, R_num], [size(ball_verts_untransformed,1),1]);
-ball_patch.FaceColor = 'interp';
-ball_patch.EdgeAlpha = 0.0;
-ball_patch.FaceAlpha = 1;
+[ball_patch, ball_verts_untransformed] = make_ball(R_num);
+ball_patch.Vertices = ball_patch.Vertices + positions(1,:); % Move it to the start point.
 
 % Arc on the ball representing possible places the arm could push.
 push_arc_plot = plot(0,0,'g','LineWidth',5);
@@ -177,8 +173,12 @@ iiwa = IIWAImporter(scene_fig);
 
 % lpatch = iiwa.link_patches{2};
 
+picked_idx = 3;
 geo_data = load('./data/iiwa_merged_end_effector.mat');
-detail_level = 2;
+picked_pts = load('./data/picked_faces.mat', 'selections');
+initial_surface_point = picked_pts.selections.points(picked_idx);
+
+detail_level = 3;
 faces = double(geo_data.merged_iiwa(detail_level).faces);
 vertices = double(geo_data.merged_iiwa(detail_level).vertices);
 face_normals = double(geo_data.merged_iiwa(detail_level).face_normals);
@@ -187,23 +187,19 @@ vertex_normals = double(geo_data.merged_iiwa(detail_level).vertex_normals);
 merged_ee_patch = patch('Faces', faces, 'Vertices', vertices, 'FaceNormals', face_normals, 'VertexNormals', vertex_normals);
 merged_patch_tform = hgtransform;
 merged_ee_patch.Parent = merged_patch_tform;
-tar_face = 1760;
 cdata = zeros(size(merged_ee_patch.Faces));
 cdata(:,1) = 1;
-cdata(tar_face,:) = [0 1 0];
+% cdata(tar_face,:) = [0 1 0];
 merged_ee_patch.FaceVertexCData = cdata;
 merged_ee_patch.FaceColor = 'flat';
-% merged_ee_patch.EdgeColor = 'None';
 merged_ee_patch.LineWidth = 0.2;
 merged_ee_patch.EdgeColor = [1, 0.8, 0.8];
 merged_ee_patch.CDataMapping = 'direct';
-[vtar1, vtar2, vtar3] = get_verts_from_face_idx(tar_face, faces, vertices);
-surf_normal = face_normals(tar_face,:);
-rel_target = double(vtar1);
+
+[ distance, surf_target, surf_normal ] = point2trimesh_with_normals( initial_surface_point, faces, vertices, face_normals, vertex_normals );
+
+
 % net_transform = transform_link_to_touch_surface_pt(rel_target, surf_normal, target_vec, target_normal, 1);
-% iiwa.hgtransforms{2}.Matrix = net_transform;
-
-
 hold off;
 
 %% Pre-evaluate some stuff before animating and just interpolate in time later.
@@ -227,9 +223,15 @@ v_surfy_eval = v_surfy_fcn(accelerations(:,1), accelerations(:,2), plane_tilt, v
 
 p_surf_world = cumtrapz(tspan, v_surf_world);
 
+% Link rolling on surface.
+picked_idx = 3;
+initial_surface_point = picked_pts.selections.points(picked_idx);
+[result_path_pts, result_path_normals, rot_integrated] = integrate_velocity_over_surface(tspan, v_surf_world, initial_surface_point, [0 0 1], geo_data.merged_iiwa(detail_level));
+
+
 %% Adjust contact positions on the plane to minimize the total needed contact area.
 [touch_section_starts, touch_section_ends, min_plane_x_dim, min_plane_y_dim] = ...
-    adjust_contact_locations_planar(tspan, v_surfx_eval, v_surfy_eval, accel_zero_break_start, accel_zero_break_end)
+    adjust_contact_locations_planar(tspan, v_surfx_eval, v_surfy_eval, accel_zero_break_start, accel_zero_break_end);
 
 %% Set the offset velocity sections to zero during the non-touch sections.
 for i = 1:length(accel_zero_break_start)
@@ -266,7 +268,7 @@ for i = 1:size(ball_linear_starts,1)
     connecting_spline_plot_shadows.Color = [0.1, 0.1, 0.1, 0.1];
 end
 
-save('pps.mat', 'connecting_pps', 'accel_zero_break_start', 'accel_zero_break_end');
+save('./data/contact_bridging_pps.mat', 'connecting_pps', 'accel_zero_break_start', 'accel_zero_break_end');
 
 plane_x_offset_offset = -touch_section_ends(1,1);
 plane_y_offset_offset = -touch_section_ends(1,2);
@@ -381,10 +383,21 @@ while (curr_time < tspan(end)) && ishandle(scene_fig)
         plane_patch.Vertices = (plane_rotation*tilt_rot*(plane_patch_verts)')' + tformed_offset;
         
         
+        %%%% MATT MONDAY HERE!!!
+        result_path_pts_interp = interp1(tspan(1:end-1), -result_path_pts, curr_time);
+        rot_integrated_idx = interp1(tspan(1:end-1), 1:size(rot_integrated,3), curr_time);
+          rot_integrated_interp = exampleHelperSE3Trajectory( rotm2tform(rot_integrated(:,:,floor(rot_integrated_idx))), rotm2tform(rot_integrated(:,:,ceil(rot_integrated_idx))), mod(rot_integrated_idx,1) );
+%         rot_integrated_interp = rot_integrated(:,:,floor(rot_integrated_idx));
+        surface_to_origin_translation = trvec2tform(result_path_pts_interp);
         
+        world_origin_to_goal_pt_translation = trvec2tform(push_arc_center_world_interp);
+        surf_vel_untransformed_to_planar_vel = (rot_integrated_interp');
+
+         merged_patch_tform.Matrix = world_origin_to_goal_pt_translation * surf_vel_untransformed_to_planar_vel * surface_to_origin_translation;
+
         
-        net_transform = transform_link_to_touch_surface_pt(rel_target, surf_normal, tformed_offset, -R_norm_accel/R_num, 0);
-        merged_patch_tform.Matrix = net_transform;
+%         net_transform = transform_link_to_touch_surface_pt(surf_target, surf_normal, tformed_offset, -R_norm_accel/R_num, 0);
+%         merged_patch_tform.Matrix = net_transform;
         
         if update_arm
             eetform = [[plane_rotation; 0, 0, 0], [(push_arc_center_world_interp' + 0.5* push_arc_center_interp'); 1]]; % Make 4x4 transformation out of rotation and translation.
@@ -432,7 +445,7 @@ while (curr_time < tspan(end)) && ishandle(scene_fig)
                 
                 
                 
-                net_transform = transform_link_to_touch_surface_pt(rel_target, surf_normal, move_spline_eval, ddx_tot_norm, 0);
+                net_transform = transform_link_to_touch_surface_pt(surf_target, surf_normal, move_spline_eval, ddx_tot_norm, 0);
                 merged_patch_tform.Matrix = net_transform;
                 
                 if update_arm

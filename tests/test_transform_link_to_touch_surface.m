@@ -23,7 +23,7 @@ ee_reference = [0, 10, 1.2610]; % End effector position in baseline pose, as sho
 surf_normal = double(get_face_normal(tar_face, faces, verts));
 surf_normal = surf_normal/norm(surf_normal);
 
-% [sphere_x,sphere_y,sphere_z] = sphere(8);
+% [sphere_x,sphere_y,sphere_z] = sphere(8);  
 % ball_patch = patch(surf2patch(sphere_x, sphere_y, sphere_z, 'triangles'))
 % ball_patch.FaceColor = 'b'
 % ball_patch.FaceAlpha = 0.3

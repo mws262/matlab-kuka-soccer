@@ -1,4 +1,5 @@
 function [touch_section_starts, touch_section_ends, min_plane_x_dim, min_plane_y_dim] = adjust_contact_locations_planar(tspan, surface_vel_x, surface_vel_y, linear_start_times, linear_end_times)
+% Picks contact points *only* for the planar case.
 %% Exploring locations on manipulator to touch.
 
 % surfx_integral_eval = cumtrapz(tspan, surface_vel_x); % Evaluate the x coordinate integral of surface velocity, reflecting distance moved along the manipulator.
