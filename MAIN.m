@@ -6,6 +6,7 @@ clear all; close all;
 addpath ./vis;
 addpath ./path_optim;
 addpath ./derived_autogen;
+addpath ./geometry;
 
 % System parameters.
 I_num = 1;
@@ -288,7 +289,7 @@ guess = home;
 % end
 
 %% Animation loop.
-animation_speed_factor = 0.3;
+animation_speed_factor = 0.05;
 update_arm = false;
 linear_boundary_velocity_arrows_end.Visible = 'off';
 linear_boundary_velocity_arrows_start.Visible = 'off';

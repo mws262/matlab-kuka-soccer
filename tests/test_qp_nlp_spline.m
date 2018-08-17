@@ -1,4 +1,7 @@
-close all;
+% Runs both the QP and NLP forms of the figure 8 optimization.
+
+close all; clear all;
+addpath ../path_optim;
 
 knots = [0,0;
     1, 1;
@@ -12,7 +15,7 @@ knots = [0,0;
 breaks = linspace(0, 10, size(knots,1))';
 
 segs_between = 5;
-[ppx, ppy] = qp_spline(breaks, knots, segs_between); % 3 segments in between knots. Highest weight on "forcing" linear sections.
+[ppx, ppy] = qp_spline(breaks, knots, segs_between);
 
 figure;
 teval = linspace(breaks(1), breaks(end), 300);

@@ -3,7 +3,7 @@ function mesh_face_picker(varargin)
 addpath ./vis;
 selected_faces = [];
 selected_points = [];
-save_file_name = './data/picked_faces.mat';
+save_file_name = './data/picked_faces_tmp.mat';
 geo_data = load('./data/iiwa_merged_end_effector.mat');
 
 picker_fig = figure;
@@ -29,6 +29,9 @@ link_patch.EdgeAlpha = 1;
 link_patch.FaceColor = 'flat';
 link_patch.FaceVertexCData = cdata;
 link_patch.EdgeColor = [0.1 0.1 0.1];
+xlabel('x');
+ylabel('y');
+zlabel('z');
 view(3);
 daspect([1,1,1]);
 

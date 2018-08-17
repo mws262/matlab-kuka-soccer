@@ -1,8 +1,6 @@
 function net_transform = transform_link_to_touch_surface_pt(link_surface_pt, link_surface_normal, goal_pt, goal_normal, scrub_angle)
 %% Align a link with a point in the world. Make the normal point in a specified direction.
 % Inputs:
-% link_origin -- What this link considers to be its own frame zero. Can be found
-% in the robot URDF.
 % link_surface_pt -- Point on the surface (before transformed) that we wish
 % to align with some world point.
 % link_surface_normal -- Original, untransformed normal on the surface.

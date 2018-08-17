@@ -1,3 +1,7 @@
+% Test getting a link to a face point matching its normal. NOT a test of
+% IK, just teleports the link there. See test_ik_goal for the extension of
+% this.
+
 close all; clear all;
 addpath ../;
 addpath ../vis;
@@ -20,17 +24,11 @@ lpatch.CDataMapping = 'direct';
 
 ee_reference = [0, 10, 1.2610]; % End effector position in baseline pose, as shown in the stls when loaded.
 [v1, v2, v3] = get_verts_from_face_idx(tar_face, faces, verts);
-surf_normal = double(get_face_normal(tar_face, faces, verts));
-surf_normal = surf_normal/norm(surf_normal);
-
-% [sphere_x,sphere_y,sphere_z] = sphere(8);  
-% ball_patch = patch(surf2patch(sphere_x, sphere_y, sphere_z, 'triangles'))
-% ball_patch.FaceColor = 'b'
-% ball_patch.FaceAlpha = 0.3
-% surf_normal = 0
+[vertex_normals, face_normals] = get_all_normals(faces, verts);
+surf_normal = double(face_normals(tar_face,:));
 
 rel_target = double(v1);
-target_vec = [0 0 0.8];
+target_vec = [0 0.8 0.8];
 target_normal = [0,-1,0];
 target_normal = target_normal/norm(target_normal);
 

@@ -1,3 +1,9 @@
+% Run optimization of the figure 8 in its nlp form. This means that it has
+% the force-adjacent-section-product cost meant to cause some sections to
+% be linear.
+
+addpath ../path_optim;
+
 knots = [0,0;
     1, 1;
     0, 2;

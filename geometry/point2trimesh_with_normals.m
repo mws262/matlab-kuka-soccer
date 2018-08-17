@@ -1,9 +1,11 @@
-function [ distance, surface_point, normal_vec ] = point2trimesh_with_normals( point, faces, vertices, face_normals, vertex_normals )
+function [ distance, surface_point, normal_vec, face_idx ] = point2trimesh_with_normals( point, faces, vertices, face_normals, vertex_normals )
 % Edited version which has about 1/20th the features. It accepts only one
 % point at a time. However, it does return face or vertex normals as
-% applicable. ** Edge calculations temporarily disabled for speed.
+% applicable.
+% Note that face idx might represent only an adjacent face if a vertex is
+% nearest.
 %% Distance Calculation
-    [distance,surface_point,face,normal_vec] = processPoint(faces, vertices, point, face_normals, vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces);
+    [distance,surface_point,face_idx,normal_vec] = processPoint(faces, vertices, point, face_normals, vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces);
 end
 
 %% Non-vectorized Distance Functions
@@ -25,7 +27,7 @@ n = zeros(3,3);
 % MATT: I am turning off distance to edges. It doesn't help me much here
 % and it takes most of the computation.
 % find nearest point on all edges
-% [d(2),p(2,:),f(2),n(2,:)] = distance_to_edges(faces,vertices,point,face_normals);
+[d(2),p(2,:),f(2),n(2,:)] = distance_to_edges(faces,vertices,point,face_normals);
 
 % find nearest point on all surfaces
 [d(3),p(3,:),f(3),n(3,:)] = distance_to_surfaces(faces,vertices,point,face_normals);
@@ -123,8 +125,9 @@ bary(:,3) = 1 - bary(:,1) - bary(:,2);        % (#faces x 3)
 % tri = triangulation(faces,vertices);
 % bary = tri.cartesianToBarycentric((1:size(faces,1))',P); % (#faces x 3)
 
-% exclude intersections that are outside the triangle
-D( abs(d)<=eps | any(bary<=0,2) | any(bary>=1,2) ) = realmax;  % (#faces x 1)
+% exclude intersections that are outside the triangle. % MATT Removed some
+% <='s so edges count as faces.
+D( abs(d)<=eps | any(bary<0,2) | any(bary>1,2) ) = realmax;  % (#faces x 1)
 
 % find nearest face for query point
 [~,I] = min(abs(D),[],1); % (1 x 1)

@@ -9,8 +9,13 @@ function [ball_patch, ball_verts_untransformed] = make_ball(radius)
 ball_patch = patch(surf2patch(radius * sphere_x, radius * sphere_y, radius * sphere_z, 100*radius * sphere_z));
 ball_verts_untransformed = ball_patch.Vertices;
 ball_patch.Vertices = ball_verts_untransformed + [0, 0, radius];
+
 ball_patch.FaceColor = 'interp';
 ball_patch.EdgeAlpha = 0.0;
 ball_patch.FaceAlpha = 1;
+
+cmap = flag(size(ball_patch.Vertices,1));
+ball_patch.FaceVertexCData = cmap;
+
 end
 

@@ -2,6 +2,7 @@ classdef IIWAImporter
     properties
         robot;
         ik;
+%         iklm
         gik;
         height_constraint;
         position_target;
@@ -9,7 +10,7 @@ classdef IIWAImporter
         link_patches;
         hgtransforms;
         home_transforms_inverse;
-        weights = [1 1 1 1 1 1];
+        weights = [0.5 0.5 0.5 1 1 1]; % Angles then positions.
     end
     methods
         function obj = IIWAImporter(fig_handle)
@@ -18,11 +19,15 @@ classdef IIWAImporter
             
             %% Use MATLAB's robot toolbox to pull stuff in.
             obj.ik = robotics.InverseKinematics('RigidBodyTree', obj.robot);
-           obj.ik.SolverParameters.AllowRandomRestart = true;
+           obj.ik.SolverParameters.AllowRandomRestart = false;
            obj.ik.SolverParameters.SolutionTolerance = 1e-12;
            obj.ik.SolverParameters.EnforceJointLimits = true;
-
-            
+           
+           % I found levenburgmarkqerwsdfs to suck.
+%            obj.iklm = robotics.InverseKinematics('RigidBodyTree', obj.robot, 'SolverAlgorithm', 'LevenbergMarquardt');
+%            obj.iklm.SolverParameters.SolutionTolerance = 1e-12;
+%            obj.iklm.SolverParameters.EnforceJointLimits = true;
+%            obj.iklm.SolverParameters.UseErrorDamping = false;
             obj.gik = robotics.GeneralizedInverseKinematics('RigidBodyTree', obj.robot, 'ConstraintInputs', {'cartesian', 'position'});
             
             % Make a constraint for each body which shouldn't be too close
@@ -107,14 +112,25 @@ classdef IIWAImporter
             end
         end
         
-        function [jnt_angles, sol_info] = make_multi_point_trajectory(obj, tform_list, guess, body_part_name)
+        function [jnt_angles, sol_info] = make_multi_point_trajectory(obj, tform_list, guess, body_part_name, kill_with_bad_sol)
             jnt_angles = cell(1, size(tform_list,3));
             sol_info = cell(1, size(tform_list,3));
 
+            not_bad = true;
             for i = 1:size(tform_list,3)
-                [guess, solinfo] = obj.ik(body_part_name, tform_list(:,:,i), obj.weights, guess); % Keep using the prev solution as the guess for the next.
-                jnt_angles{i} = guess;
-                sol_info{i} = solinfo;
+                if not_bad
+                    [guess, solinfo] = obj.ik(body_part_name, tform_list(:,:,i), obj.weights, guess); % Keep using the prev solution as the guess for the next.
+                    jnt_angles{i} = guess;
+                    sol_info{i} = solinfo;
+                    if kill_with_bad_sol && solinfo.PoseErrorNorm > 1e-5
+                        fprintf('Bailed on IK at %d with an error of %f.\n', i, solinfo.PoseErrorNorm);
+                        not_bad = false;
+                    end
+                else
+                    jnt_angles{i} = guess;
+                    solinfo.PoseErrorNorm = 1;
+                    sol_info{i} = solinfo;
+                end
             end
         end
         
