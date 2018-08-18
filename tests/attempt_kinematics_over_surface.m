@@ -24,7 +24,6 @@ if fail_flag
     jnt_angles = 0;
     breaks = 0;
     solinfo = 0;
-    proj_start_pt = 0;
     return;
 end
 

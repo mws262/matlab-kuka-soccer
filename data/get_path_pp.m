@@ -1,9 +1,10 @@
 function path_pp = get_path_pp(path_name, total_time)
 %GET_PATH_PP Get a piecewise polynomial representing a path along the
 %ground.
-%   Valid names: 
+%   Valid names:
 % large_arc -- Large arc with zero endpoint velocities.
 % small_arc -- Small arc with zero endpoint velocities.
+% small_arc_knot -- Small arc with not-a-knot end condition.
 % large_circle -- large circle approximation.
 
 switch path_name
@@ -20,6 +21,13 @@ switch path_name
         knots = [0,-R,0; R,0,0; 0, R,0]' + offset;
         breaks = linspace(0, total_time, size(knots,2));
         path_pp = spline(breaks, [[0;0;0], knots, [0;0;0]]);
+        return;       
+    case 'small_arc_knot'
+        R = 0.1;
+        offset = [0.4;0;0];
+        knots = [0,R,0; R,0,0; 0, -R,0]' + offset;
+        breaks = linspace(0, total_time, size(knots,2));
+        path_pp = csape(breaks, knots, 'not-a-knot');
         return;
     case 'large_circle'
         R = 0.5;
@@ -27,6 +35,8 @@ switch path_name
         breaks = linspace(0, total_time, size(knots,2));
         path_pp = csape(breaks, knots, 'periodic');
         return;
+    otherwise
+        error('Unknown path_name given in the call to get a path piecewise polynomial.');
 end
 end
 
