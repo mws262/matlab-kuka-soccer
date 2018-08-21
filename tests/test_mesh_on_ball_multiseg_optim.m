@@ -77,10 +77,22 @@ drawnow;
 %% Split into a bunch of smaller problems for each contacting section.
 % Initial guess. Each column is for one contact region.
 initial_guess = zeros(4,3);
-initial_guess(:, 1) = [0.2146; 5.9184; 6.2652; 1.1368];
-initial_guess(:, 2) = [0.1486; 6.1941; 5.7358; 1.4480];
-initial_guess(:, 3) = [0.1427; 2.8584; 6.2832; 1.3219];
+% initial_guess(:, 1) = [0.2146; 5.9184; 6.2652; 1.1368];
+% initial_guess(:, 2) = [0.1486; 6.1941; 5.7358; 1.4480];
+% initial_guess(:, 3) = [0.1427; 2.8584; 6.2832; 1.3219];
 
+initial_guess(:,1) = [    0.1805
+    2.4401
+    6.2832
+    1.1568];
+initial_guess(:,2) =     [0.1990
+    6.2832
+    5.1294
+    1.3749];
+initial_guess(:,3) =    [ 0.2166
+    4.4991
+    5.9545
+    1.3774];
 
 num_eval_pts = 50;
 plot_flag = false;
