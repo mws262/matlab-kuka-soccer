@@ -46,7 +46,7 @@ manipulator_patch.Parent = manipulator_tform;
 
 
 %% Pick a path polynomial.
-path_pp = get_path_pp('large_arc', 5);
+path_pp = get_path_pp('triangle', 5);
 
 total_ts = 250; % Total timesteps to evaluate at.
 approach_ang = 0;

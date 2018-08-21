@@ -7,7 +7,7 @@ function [ppx, ppy] = nlp_spline(breaks, knots, pinned_spacing, adjacent_segment
 % "Squareness" is tuned with adjacent_segment_product_scaling (0-1) (higher ==
 % more). "Squareness" is achieved by having a cost associated with the
 % PRODUCT of adjacent segment's integrals of acceleration.
-periodic = false;
+periodic = true;
 
 %% Formulate the problem symbolically TODO: well... don't do that.
 pts = pinned_spacing*size(knots,1) - pinned_spacing + 1;
@@ -75,6 +75,8 @@ y_constraints = [
 if periodic
     x_constraints = [x_constraints; vxe(end) == vxst(1)]; % Initial velocity matches final velocity (periodic condition).
     y_constraints = [y_constraints; vye(end) == vyst(1)];
+    x_constraints = [x_constraints; axe(end) == axst(1)]; % Initial velocity matches final velocity (periodic condition).
+    y_constraints = [y_constraints; aye(end) == ayst(1)];
 else
     x_constraints = [x_constraints; vxe(end) == 0; vxst(1) == 0]; % Initial velocity matches final velocity (periodic condition).
     y_constraints = [y_constraints; vye(end) == 0; vyst(1) == 0];

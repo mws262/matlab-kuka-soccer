@@ -47,13 +47,17 @@ x_constraints = [
     xe(1:end - 1) == xst(2:end);
     vxe(1:end - 1) == vxst(2:end);
     axe(1:end - 1) == axst(2:end)
+    
+    vxe(end) == vxst(1); % Match end/beginning velocities?
     ];
 
 y_constraints = [
     pinned_pts_y;
     ye(1:end - 1) == yst(2:end);
     vye(1:end - 1) == vyst(2:end);
-    aye(1:end - 1) == ayst(2:end)
+    aye(1:end - 1) == ayst(2:end);
+    
+    vye(end) == vyst(1);
     ];
 
 x_coeffs = reshape(a.',numel(a),1);

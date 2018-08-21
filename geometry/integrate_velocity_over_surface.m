@@ -20,13 +20,18 @@ vertex_normals = patch_struct.vertex_normals;
 [rotation, current_pt, current_normal] = find_mesh_contact_tform(initial_position, up_vectors(1,:), approach_ang, faces, vertices, face_normals, vertex_normals);
 % init_normal = current_normal;
 % Prepare output value arrays.
-total_steps = length(tspan) - 1;
+total_steps = length(tspan);
 result_path_pts = zeros(total_steps,3);
 result_path_normals = zeros(total_steps,3);
 rotations = zeros(3,3,total_steps);
 
+% Add initial points.
+result_path_pts(1,:) = current_pt;
+result_path_normals(1,:) = current_normal;
+rotations(:,:,1) = rotation;
+
 % Integration loop.
-for i = 1:total_steps
+for i = 1:total_steps - 1
     % Replaced euler below with RK4. Hanging onto this fragment until we've
     % tested it more.
 %     dt = tspan(i + 1) - tspan(i);
@@ -105,8 +110,8 @@ for i = 1:total_steps
         current_normal = new_normal_vec;
         rotation = modified_gram_schmidt(rotation); % Fix the rotation matrix.
         
-        result_path_pts(i,:) = current_pt;
-        result_path_normals(i,:) = current_normal;
-        rotations(:,:,i) = rotation;
+        result_path_pts(i + 1,:) = current_pt;
+        result_path_normals(i + 1,:) = current_normal;
+        rotations(:,:,i + 1) = rotation;
 end
 end

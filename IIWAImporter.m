@@ -1,4 +1,4 @@
-classdef IIWAImporter
+classdef IIWAImporter < handle
     properties
         robot;
         ik;
