@@ -1,6 +1,5 @@
 function connecting_pps = make_contact_connecting_splines(start_times, end_times, spline_start_pos, spline_end_pos, plane_touch_starts, ...
     plane_touch_ends, contact_vel_start, contact_vel_end, start_accel_x, start_accel_y, end_accel_x, end_accel_y, plane_tilt)
-addpath ./derived_autogen;
 
 outward_scoop_dist = 0.1;
 outward_upward_scoop_dist = 0.05;

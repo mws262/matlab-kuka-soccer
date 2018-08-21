@@ -1,17 +1,11 @@
 % Runs both the QP and NLP forms of the figure 8 optimization.
+% Feeds QP version into NLP as initial guess.
+% Processes result to pick out linear regions and shift the whole thing to
+% begin with a contact region.
 
 close all; clear all;
 addpath ../path_optim;
 
-% fig 8
-knots = [0,0;
-    1, 1;
-    0, 2;
-    -1, 1;
-    1, -1;
-    0, -2;
-    -1, -1;
-    0, 0];
 
 % triangle
 offset = [0.48, 0];
@@ -53,7 +47,7 @@ figure;
 hold on;
 daspect([1,1,1]);
 for i = 1:length(contact_polys)
-   poly_val = ppval(contact_polys(i), linspace(0, contact_polys(i).breaks(end), 100))';
+   poly_val = ppval(contact_polys(i), linspace(contact_polys(i).breaks(1), contact_polys(i).breaks(end), 100))';
    plot(poly_val(:,1), poly_val(:,2));
 end
 

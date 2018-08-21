@@ -7,6 +7,8 @@ addpath ../vis/;
 addpath ../geometry/;
 addpath ../derived_autogen/;
 addpath ../data/;
+addpath ../iiwa_kinematics/;
+addpath ../dynamics/;
 
 %% Ball and scene
 ball_radius = 0.1;

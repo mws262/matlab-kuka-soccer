@@ -75,34 +75,7 @@ drawnow;
 
 
 %% Split into a bunch of smaller problems for each contacting section.
-% Initial guess.
-% Solution for 1.
-%     0.2146
-%     5.9184
-%     6.2652
-%     1.1368
-% Another, oops:
-%     0.2118
-%     5.8371
-%     6.0726
-%     1.3152
-% %another?
-% 0.2597
-% 5.9063
-% 6.2832
-% 1.1076
-% Solution for 2.
-% initial_guess = [    0.1486
-%     6.1941
-%     5.7358
-%     1.4480];
-% 
-% % sol, for 3
-%     0.1427
-%     2.8584
-%     6.2832
-%     1.3219
-
+% Initial guess. Each column is for one contact region.
 initial_guess = zeros(4,3);
 initial_guess(:, 1) = [0.2146; 5.9184; 6.2652; 1.1368];
 initial_guess(:, 2) = [0.1486; 6.1941; 5.7358; 1.4480];
@@ -112,6 +85,8 @@ initial_guess(:, 3) = [0.1427; 2.8584; 6.2832; 1.3219];
 num_eval_pts = 50;
 plot_flag = false;
 just_evaluate_guess = true;
+optimization_ik_waypoints = 5; % Evaluate ik at this number of waypoints throughout optimization.
+result_waypoints = 25; % Evaluate IK at more points after results
 
 surface_path_pts_interp = general_interpolator(3);
 surface_path_rot_interp = general_interpolator([3,3]);
@@ -123,7 +98,7 @@ all_jnt_breaks = [];
 
 for i = 1:length(contact_polys)
     [solution, jnt_angles_optim, breaks_optim, result_path_pts, path_rot_integrated, world_contact_desired_span, up_vector_span] = ...
-        optimize_contact_region_kinematics(iiwa, initial_guess(:,i), contact_polys(i), num_eval_pts, ball_radius, plot_flag, just_evaluate_guess);
+        optimize_contact_region_kinematics(iiwa, initial_guess(:,i), contact_polys(i), num_eval_pts, ball_radius, plot_flag, just_evaluate_guess, optimization_ik_waypoints, result_waypoints);
     section_tspan = linspace(contact_polys(i).breaks(1), contact_polys(i).breaks(end), num_eval_pts);
     
     surface_path_pts_interp.add_to_end_at_time(section_tspan, result_path_pts);
@@ -131,7 +106,7 @@ for i = 1:length(contact_polys)
     world_contact_pt_interp.add_to_end_at_time(section_tspan, world_contact_desired_span);
     up_vector_interp.add_to_end_at_time(section_tspan, up_vector_span);
     
-    % Find a connector
+    % Find a connector (IN PROGRESS)
     if i > 1
         curr_ctact_start_t = breaks_optim(1);
         connector_start_pos = ppval(shifted_position_pp, prev_ctact_endt);

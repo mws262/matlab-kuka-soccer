@@ -1,3 +1,5 @@
+%% MATT NOTE: I changed this to take function handles rather than string names of functions. This makes using lambdas possible.
+
 function [xmin, ...      % minimum search point of last iteration
 	  fmin, ...      % function value of xmin
 	  counteval, ... % number of function evaluations done

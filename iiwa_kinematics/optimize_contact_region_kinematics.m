@@ -1,5 +1,5 @@
 function [solution, jnt_angles_optim, breaks_optim, result_path_pts, path_rot_integrated, world_contact_desired_span, up_vector_span] = ...
-    optimize_contact_region_kinematics(robot, initial_guess, pos_pp, num_eval_pts, ball_radius, plot_flag, just_evaluate_guess)
+    optimize_contact_region_kinematics(robot, initial_guess, pos_pp, num_eval_pts, ball_radius, plot_flag, just_evaluate_guess, num_optimization_ik_waypoints, num_results_waypoints)
 
 %% Calculate stuff based on the position spline.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
@@ -94,12 +94,12 @@ else
 end
 %% Evaluate the optimization winner.
 [error, jnt_angles_optim, breaks_optim, solinfo_optim, result_path_pts, path_rot_integrated, world_contact_desired_span, up_vector_span] = ...
-    cost_fun(solution(1), solution(2), solution(3), solution(4), 25, false); % Don't kill IK even if bad solution occurs.
+    cost_fun(solution(1), solution(2), solution(3), solution(4), min(num_results_waypoints, num_eval_pts), false); % Don't kill IK even if bad solution occurs.
 
 
 % Wrap the cost function in 'SISO' form for CMAES to use.
     function err = cost_fun_wrap(X)
-        err = cost_fun(X(1,:), X(2,:), X(3,:),X(4,:), 10, true);
+        err = cost_fun(X(1,:), X(2,:), X(3,:),X(4,:), num_optimization_ik_waypoints, true);
     end
 
 % Cost function with full result outputs.

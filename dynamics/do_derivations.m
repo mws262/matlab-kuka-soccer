@@ -1,4 +1,5 @@
 function derived_eqns = do_derivations()
+%% Dumps derived functions in derived_autogen directory.
 syms fax fay faz fn ffx ffy rx ry vx vy ax ay wx wy wz wdx wdy wdz fric_coeff theta real;
 syms g m I R positive;
 % g - gravity
@@ -87,7 +88,7 @@ v_surfx = dot(vsurf_general, isurf); % This finds the component of velocity
 v_surfy = dot(vsurf_general, jsurf);
 
 %% Make functions for various symbolic equations.
-write_location = './derived_autogen/'; % For writing to function files.
+write_location = '../derived_autogen/'; % For writing to function files.
 
 derived_eqns.friction_required_fcn = matlabFunction(friction_required, 'File', strcat(write_location, 'friction_required_fcn'));
 derived_eqns.x_force_required_fcn = matlabFunction(fax_solve, 'File', strcat(write_location, 'x_force_required_fcn')); % Required x component of force applied by arm.

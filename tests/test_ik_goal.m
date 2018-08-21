@@ -2,9 +2,10 @@
 % orientation.
 
 close all; clear all;
-addpath ..;
+addpath ../;
 addpath ../vis;
 addpath ../geometry;
+addpath ../iiwa_kinematics;
 loaded_faces = load('../data/picked_faces.mat');
 
 scene_fig = make_visualizer_scene();

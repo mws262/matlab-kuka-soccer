@@ -1,6 +1,9 @@
 clear all; close all;
 addpath ../derived_autogen/;
 addpath ../geometry/;
+% Changing the as-we-go euler integration of quaternions to ahead-of-time
+% rk4.
+%
 % Still feels like a dumb thing to do, especially since we have a full
 % expression for omega. Still, it's better than euler from before. If the
 % normalization is taken away from both rk4 and euler, euler loses unit

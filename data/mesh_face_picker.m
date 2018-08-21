@@ -1,10 +1,10 @@
 function mesh_face_picker(varargin)
 %% Lets the user select patch faces by clicking. Face indices are saved after each click.
-addpath ./vis;
+addpath ../vis;
 selected_faces = [];
 selected_points = [];
-save_file_name = './data/picked_faces_tmp.mat';
-geo_data = load('./data/iiwa_merged_end_effector.mat');
+save_file_name = './picked_faces_tmp.mat';
+geo_data = load('./iiwa_merged_end_effector.mat');
 
 picker_fig = figure;
 picker_fig.Position = [0, 0, 1000, 900];

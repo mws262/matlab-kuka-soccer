@@ -6,6 +6,8 @@ addpath ../geometry/;
 addpath ../derived_autogen/;
 addpath ../data/;
 addpath ../path_optim/;
+addpath ../iiwa_kinematics/;
+addpath ../dynamics/;
 
 %% Import data for the dummy planning foot and the banned regions on it.
 dummy_foot_dat = get_mesh_data('dummy_manipulator_mid_res');
@@ -49,7 +51,9 @@ draw_path_and_accel(posspan, accelspan, 3); % Draw out the path and acceleration
 %% Set up optimization
 
 plot_flag = false;
-just_evaluate_guess = false;
+just_evaluate_guess = false; % rather than running the whole optimization again.
+optimization_ik_waypoints = 5; % Evaluate ik at this number of waypoints throughout optimization.
+result_waypoints = 25; % Evaluate IK at more points after results
 
 % Initial guess.
 guess = [    0.1268
@@ -58,7 +62,7 @@ guess = [    0.1268
     1.2588];
 
 [solution, jnt_angles_optim, breaks_optim, result_path_pts, path_rot_integrated, world_contact_desired_span, up_vector_span] = ...
-    optimize_contact_region_kinematics(iiwa, guess, pos_pp, num_evaluation_pts, ball_radius, plot_flag, just_evaluate_guess);
+    optimize_contact_region_kinematics(iiwa, guess, pos_pp, num_evaluation_pts, ball_radius, plot_flag, just_evaluate_guess, optimization_ik_waypoints, result_waypoints);
 
 %% Play the winning solution.
 campos([1.6970    1.5293    0.9466]);

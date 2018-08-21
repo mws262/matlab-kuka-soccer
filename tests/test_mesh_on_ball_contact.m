@@ -9,6 +9,7 @@ addpath ../vis/;
 addpath ../geometry/;
 addpath ../derived_autogen/;
 addpath ../data/;
+addpath ../dynamics/;
 
 % Ball and scene
 ball_radius = 0.1;
@@ -46,7 +47,7 @@ manipulator_patch.Parent = manipulator_tform;
 
 
 %% Pick a path polynomial.
-path_pp = get_path_pp('triangle', 5);
+path_pp = get_path_pp('large_arc', 5);
 
 total_ts = 250; % Total timesteps to evaluate at.
 approach_ang = 0;
@@ -83,15 +84,6 @@ if write_to_vid
     vid_writer.Quality = 100;
     open(vid_writer);
 end
-
-% Still sorting this mess out.
-% upvec_rot = zeros(3,3,length(tspan));
-% upvec_rot(:,:,1) = eye(3);
-% for i = 2:length(tspan)
-% next_rot = get_rotation_from_vecs(up_vector_span(i - 1, :), up_vector_span(i, :));
-% upvec_rot(:,:,i) = next_rot * upvec_rot(:,:,i-1);
-% end
-
 
 for i = 1:length(tspan) - 1
     quat = quatspan(i,:);
