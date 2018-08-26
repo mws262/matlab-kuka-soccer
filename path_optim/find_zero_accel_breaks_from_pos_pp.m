@@ -48,7 +48,10 @@ function [accel_zero_break_start, accel_zero_break_end, contact_polys, shifted_p
     %% Shift the whole thing so it starts with a contact region.
     shifted_coeffs = pp_pos.coefs(zero_end_idx(1)*3 + 1:end,:);
     shifted_coeffs = [shifted_coeffs; pp_pos.coefs(1:zero_end_idx(1)*3,:)];
-    
+%     shifted_coeffs = round(shifted_coeffs, 7);
+
+%     shifted_coeffs(1:3,2) = sign(shifted_coeffs(1:3,1)).*sign(shifted_coeffs(1:3,2)) .* shifted_coeffs(1:3,2);
+
     shifted_breaks = pp_pos.breaks(zero_end_idx(1) + 1:end);
     shifted_breaks = shifted_breaks - pp_pos.breaks(zero_end_idx(1) + 1);
     % I feel like this is dumb. Revisit if time.
@@ -57,7 +60,7 @@ function [accel_zero_break_start, accel_zero_break_end, contact_polys, shifted_p
     
     %% Make piecewise polynomials separately for each contact location, using the shifted pp
     contact_polys = {};
-    shifted_accel_pp = fnder(shifted_position_pp,2);
+    shifted_accel_pp = fnder(shifted_position_pp, 2);
     shifted_breaks = shifted_position_pp.breaks;
       
     shifted_max_accel_coefs = max(abs(shifted_accel_pp.coefs),[],2); % For identifying regions where the acceleration goes to 0.
@@ -93,7 +96,6 @@ function [accel_zero_break_start, accel_zero_break_end, contact_polys, shifted_p
         section_breaks = shifted_breaks(st_idx:end_idx + 1);
         contact_polys{end + 1} = ppmak(section_breaks, section_coeffs, dim);
     end
-    
 %     for i = 1:length(zero_end_idx) - 1
 %         st_idx = zero_end_idx(i) + 1;
 %         end_idx = zero_start_idx(i + 1) - 1;

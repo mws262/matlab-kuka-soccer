@@ -45,4 +45,6 @@ light1 = light();
 light1.Position = [10,10,40];%ax.CameraPosition;
 light1.Style = 'infinite';
 
+% camlight HEADLIGHT;
+
 return

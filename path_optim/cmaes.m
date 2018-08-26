@@ -249,7 +249,7 @@ defopts.UserDat2 = ''; 'for saving data/comments associated with the run';
 
 if nargin < 1 || isequal(fitfun, 'defaults') % pass default options
   if nargin < 1
-    disp('Default options returned (type "help cmaes" for help).');
+%     disp('Default options returned (type "help cmaes" for help).');
   end
   xmin = defopts;
   if nargin > 1 % supplement second argument with default options

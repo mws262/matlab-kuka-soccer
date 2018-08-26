@@ -26,9 +26,9 @@ result_path_normals = zeros(total_steps,3);
 rotations = zeros(3,3,total_steps);
 
 % Add initial points.
-result_path_pts(1,:) = current_pt;
-result_path_normals(1,:) = current_normal;
-rotations(:,:,1) = rotation;
+% result_path_pts(1,:) = current_pt;
+% result_path_normals(1,:) = current_normal;
+% rotations(:,:,1) = rotation;
 
 % Integration loop.
 for i = 1:total_steps - 1
@@ -110,8 +110,14 @@ for i = 1:total_steps - 1
         current_normal = new_normal_vec;
         rotation = modified_gram_schmidt(rotation); % Fix the rotation matrix.
         
-        result_path_pts(i + 1,:) = current_pt;
-        result_path_normals(i + 1,:) = current_normal;
-        rotations(:,:,i + 1) = rotation;
+        result_path_pts(i,:) = current_pt;
+        result_path_normals(i,:) = current_normal;
+        rotations(:,:,i) = rotation;
 end
+% TODO FIX THIS PROPERLY. Just replicating the next to last value so the
+% dimensions are nicer.
+        result_path_pts(end,:) = result_path_pts(end - 1,:);
+        result_path_normals(end,:) = result_path_normals(end - 1, :);
+        rotations(:,:,end) = rotations(:,:,end - 1);
+
 end

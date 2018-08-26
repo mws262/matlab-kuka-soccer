@@ -8,7 +8,7 @@ addpath ../path_optim;
 
 
 % triangle
-offset = [0.48, 0];
+offset = [0.42, 0.1];
 scale = 0.15;
 knots = fliplr([ 0, sqrt(3); 1, 0; -1, 0; 0, sqrt(3)]);
 

@@ -9,6 +9,7 @@ function mesh_struct = get_mesh_data(mesh_name)
 % 'horiz_plane' - horizontal plane centered at 0,0,0.
 % 'twentyhedron' - twenty-sided platonic polyhedron.
 % 'sixhedron' - six-sided platonic polyhedron.
+% 'cube' - centered around the origin.
 % 'manipulator_banned1' - banned region near the wrist of the robot end
 % link.
 
@@ -31,12 +32,16 @@ switch mesh_name
         mesh_struct = geo_data.merged_iiwa(4);
         return;
     case 'twentyhedron'
-        [twentygon, ~] = simple_shape_data();
+        [twentygon, ~, ~] = simple_shape_data();
         mesh_struct = twentygon;
         return;
     case 'sixhedron'
-        [~, sixgon] = simple_shape_data();
+        [~, sixgon, ~] = simple_shape_data();
         mesh_struct = sixgon;
+        return;
+    case 'cube'
+        [~, ~, cube] = simple_shape_data();
+        mesh_struct = cube;
         return;
     case 'manipulator_banned1'
         geo_data = load('../data/iiwa_merged_end_effector.mat');
