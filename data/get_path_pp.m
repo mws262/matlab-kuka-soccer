@@ -7,6 +7,8 @@ function path_pp = get_path_pp(path_name, total_time)
 % small_arc_knot -- Small arc with not-a-knot end condition.
 % large_circle -- Large circle approximation.
 % triangle -- Smooth-cornered triangle made by test_qp_nlp_spline.
+% triangle_centered -- Smooth-cornered triangle made by test_qp_nlp_spline.
+% Hand-'centered' about the origin.
 
 switch path_name
     case 'large_arc'
@@ -18,7 +20,7 @@ switch path_name
         return;
     case 'small_arc'
         R = 0.1;
-        offset = [0.45;0;0];
+        offset = [0.5;0.1;0];
         knots = [0,-R,0; R,0,0; 0, R,0]' + offset;
         breaks = linspace(0, total_time, size(knots,2));
         path_pp = spline(breaks, [[0;0;0], knots, [0;0;0]]);
@@ -41,6 +43,10 @@ switch path_name
         path_pp = loaded_spl.triangle_spline; % THIS IGNORES THE TIME SCALING BECAUSE IT MESSES STUFF UP. TODO.
 %         time_scale = total_time/path_pp.breaks(end); % Rescale the timing.
 %         path_pp.breaks = path_pp.breaks * time_scale; 
+        return;
+    case 'triangle_centered'
+        loaded_spl = load('triangle_position_spline_no_offset.mat', 'nlp_triangle_spline');
+        path_pp = loaded_spl.nlp_triangle_spline; % THIS IGNORES THE TIME SCALING BECAUSE IT MESSES STUFF UP. TODO.
         return;
     otherwise
         error('Unknown path_name given in the call to get a path piecewise polynomial.');

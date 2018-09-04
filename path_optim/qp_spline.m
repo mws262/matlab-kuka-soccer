@@ -1,4 +1,4 @@
-function [ppx, ppy] = qp_spline(breaks, knots, pinned_spacing)
+function spline_optim = qp_spline(breaks, knots, pinned_spacing)
 
 pts = pinned_spacing*size(knots,1) - pinned_spacing + 1;
 segs = pts - 1;
@@ -86,6 +86,9 @@ opt.OptimalityTolerance = 1e-12;
 coeff_sol = reshape(sol,[4, length(sol)/4]).';
 ppx = mkpp([tst;te(end)], coeff_sol(1:length(coeff_sol)/2,:));
 ppy = mkpp([tst;te(end)], coeff_sol(length(coeff_sol)/2 + 1:end,:));
+
+spline_optim = spline_concat_in_dimension(ppx ,ppy); % Combine the separate ppx and ppy piecewise polys into one.
+
 end
 
 

@@ -7,15 +7,32 @@ classdef IIWAImporter < handle
         height_constraint;
         position_target;
         home_config;
+        base_tform; % Transform for the base/world link of the robot, i.e. actually moves the robot.
         link_patches;
         hgtransforms;
         home_transforms_inverse;
         weights = [0.5 0.5 0.5 1 1 1]; % Angles then positions.
     end
     methods
-        function obj = IIWAImporter(fig_handle)
-            
+        function obj = IIWAImporter(fig_handle, varargin)
             obj.robot = importrobot('iiwa14.urdf'); % Import from URDF. Matlab has the file in it's own path. Wow.
+            if ~isempty(varargin)
+                obj.base_tform = varargin{1};
+                obj.robot.Bodies{1}.Joint.setFixedTransform(obj.base_tform);
+                
+                % If we want a visual mounting platform.
+                cyl_radius = 1;
+                cyl_height = 3;
+                base_loc1 = varargin{1} * [0, 0, 0, 1]';
+                base_loc2 = varargin{1} * [0, 0, -cyl_height, 1]';
+                [cyl_sides, cyl_lids] = genCylinder(base_loc1(1:3), base_loc2(1:3), cyl_radius, 16);
+                cyl_sides.FaceColor = [0.2, 0.2, 0.2];
+                cyl_sides.FaceAlpha = 0.75;
+                cyl_lids.FaceColor = [0.2, 0.2, 0.2];    
+                cyl_lids.FaceAlpha = 0.75;
+            else
+                obj.base_tform = eye(4);
+            end
             
             %% Use MATLAB's robot toolbox to pull stuff in.
             obj.ik = robotics.InverseKinematics('RigidBodyTree', obj.robot);
@@ -117,6 +134,7 @@ classdef IIWAImporter < handle
             sol_info = cell(1, size(tform_list,3));
 
             not_bad = true;
+            messup_error = 0; % If we get a bad error, everyone else after this point gets it too.
             for i = 1:size(tform_list,3)
                 if not_bad
                     [guess, solinfo] = obj.ik(body_part_name, tform_list(:,:,i), obj.weights, guess); % Keep using the prev solution as the guess for the next.
@@ -125,10 +143,11 @@ classdef IIWAImporter < handle
                     if kill_with_bad_sol && solinfo.PoseErrorNorm > 1e-5
                         fprintf('Bailed on IK at %d with an error of %f.\n', i, solinfo.PoseErrorNorm);
                         not_bad = false;
+                        messup_error = solinfo.PoseErrorNorm;
                     end
                 else
                     jnt_angles{i} = guess;
-                    solinfo.PoseErrorNorm = 1;
+                    solinfo.PoseErrorNorm = messup_error;
                     sol_info{i} = solinfo;
                 end
             end

@@ -8,7 +8,7 @@ ball_com_accelerations = load([ directory_name, '/ball_com_accelerations.mat'], 
 ball_quats = load([directory_name, '/ball_quats.mat'], 'ball_quats', '-ascii');
 ball_timings = load([directory_name, '/ball_timings.mat'], 'ball_timings', '-ascii');
 
-joint_timings = load([directory_name, '/joint_fit_timings.mat'], 'joint_timings', '-ascii');
+joint_timings = load([directory_name, '/joint_timings_fit.mat'], 'joint_timings', '-ascii');
 joint_angles = load([directory_name, '/joint_angles_fit.mat'], 'joint_angles', '-ascii');
 
 % contact_pt_timings = load([directory_name, '/contact_pt_timings.mat'], 'contact_pt_timings', '-ascii');
@@ -24,7 +24,9 @@ ball_radius = 0.1;
 [ball_patch, ball_verts_untransformed] = make_ball(ball_radius);
 
 % Whole robot.
-iiwa = IIWAImporter(scene_fig);
+base_rotation = rotm2tform(angle2dcm(pi, 0, pi, 'xyz'));
+base_translation = trvec2tform([0, 0, 1.35]);
+iiwa = IIWAImporter(scene_fig, base_translation * base_rotation);
 
 draw_path_and_accel(ball_com_positions - [0, 0, ball_radius], ball_com_accelerations, 1); % Draw out the path and acceleration arrows.
 
@@ -43,7 +45,6 @@ tic;
 curr_time = 0;
 
 % Video recording if desired
-write_to_vid = false;
 if write_to_vid
     framerate = 60;
     vid_writer = VideoWriter([directory_name, '.avi']); % Convert for Slack with 'ffmpeg -i infile.avi youroutput.mp4'

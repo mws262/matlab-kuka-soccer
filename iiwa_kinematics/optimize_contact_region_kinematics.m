@@ -5,7 +5,7 @@ function [optim_solution, joint_plan, dummy_link_motion] = ...
 default_problem.robot = '';
 default_problem.ball_position_pp = '';
 default_problem.ball_radius = 0.1;
-default_problem.optim_initial_guess = zeros(4,1);
+default_problem.optim_initial_guess = 2*ones(4,1); % projection_height, projection_angle, placement_ang, arc_angle
 
 %% Options structure.
 default_options.min_approach_angle = 0; % Approach angle of the foot link towards the ball around the contact normal.
@@ -21,17 +21,17 @@ default_options.debug_plot = false; % Display sampling-on-foot debug plot.
 default_options.debug_plot_id = 103;
 
 default_options.num_spline_eval_points = 50; % Number of points along the ball-position-spline to evaluate.
-default_options.num_optimization_ik_waypoints = 10; % Number of waypoints used during optimization.
+default_options.num_optimization_ik_waypoints = 5; % Number of waypoints used during optimization.
 default_options.num_results_waypoints = 25; % Number of waypoints used when just evaluating the results / for return values.
 
 default_options.model_detail = 'high'; % high, mid, or low. How detailed of a dummy foot model to use. This is not just visual. This model's surface is used for integration.
 default_options.verbose = true; % Display warnings, status updates, etc. Does not affect CMAES options.
 
 % Saving/loading/what to evaluate
-default_options.just_evaluate_guess = false; % Just evaluate the provided CMAES guess, rather than re-running the whole optimization. If also loading a file, then just evaluating will just return the loaded results.
-default_options.save_to_file = true; % Save the results to file?
-default_options.load_from_file = false; % Load previously-saved results?
-default_options.save_directory = '../data/optim_results/';
+default_options.just_evaluate_guess = true; % Just evaluate the provided CMAES guess, rather than re-running the whole optimization. If also loading a file, then just evaluating will just return the loaded results.
+default_options.save_to_file = false; % Save the results to file?
+default_options.load_from_file = true; % Load previously-saved results?
+default_options.save_directory = './';
 default_options.save_file = 'contact_kinematics_result.mat';
 
 % CMAES options, all others are default.
@@ -68,17 +68,6 @@ default_problem.joint_initial_guess = user_problem.robot.home_config; % Use home
 
 problem = mergeOptions(default_problem, user_problem, 'Problem struct');
 options = mergeOptions(default_options, user_options, 'Options struct');
-
-% Bounds: cylinder Z, cylinder angle, approach angle, arc angle.
-options.cmaes_opts.LBounds = [options.min_sample_height_offset
-    options.min_sample_angle
-    options.min_approach_angle
-    options.min_arc_angle];
-
-options.cmaes_opts.UBounds = [options.max_sample_height_offset
-    options.max_sample_angle
-    options.max_approach_angle
-    options.max_arc_angle];
 
 if options.verbose
    disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
@@ -123,7 +112,7 @@ if ischar(problem.ball_position_pp)
 end
 
 %% Calculate stuff based on the position spline.
-[tspan, ~, ~, ~, omegaspan, ~, ...
+[tspan, ball_pos, ball_vel, ball_accel, ball_omega, ball_quat, ...
     world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn] = evaluate_spline(problem.ball_position_pp, problem.ball_radius, options.num_spline_eval_points);
 
 %% Import data for the dummy planning foot and the banned regions on it.
@@ -141,8 +130,25 @@ switch(options.model_detail)
         warning('Unrecognized model detail level given: %s. Using high as default.', options.model_detail);
         dummy_foot_dat = get_mesh_data('dummy_manipulator_high_res');
 end
-
+%         geo_data = load('../../data/iiwa_merged_end_effector.mat');
 banned_region_dat = get_mesh_data('manipulator_banned1');
+
+
+% Bounds: cylinder Z, cylinder angle, approach angle, arc angle.
+% Get bounding cylinder data (any mesh resolution should be ok.
+[cylinder_radius, cylinder_center_offset_x, cylinder_center_offset_y, cylinder_center_offset_z, cylinder_height] = ...
+    get_bounding_cylinder_params(dummy_foot_dat);
+
+options.cmaes_opts.LBounds = [options.min_sample_height_offset
+    options.min_sample_angle
+    options.min_approach_angle
+    options.min_arc_angle];
+
+options.cmaes_opts.UBounds = [options.max_sample_height_offset + cylinder_height
+    options.max_sample_angle
+    options.max_approach_angle
+    options.max_arc_angle];
+
 
 % Not the main scene, just shows where samples are being pulled from on the
 % dummy foot.
@@ -165,9 +171,6 @@ if options.debug_plot
 end
 
 %% Make cylinder around the dummy link and pick permissible areas to sample from.
-% Get bounding cylinder data (any mesh resolution should be ok.
-[cylinder_radius, cylinder_center_offset_x, cylinder_center_offset_y, cylinder_center_offset_z, cylinder_height] = ...
-    get_bounding_cylinder_params(dummy_foot_dat);
 
 if options.debug_plot
     if options.verbose
@@ -213,6 +216,8 @@ if ~options.just_evaluate_guess
         problem.optim_initial_guess, ...
         options.sigma_multiplier *(options.cmaes_opts.UBounds - options.cmaes_opts.LBounds), ...
         options.cmaes_opts)
+    
+    disp('o');
 else
     if options.verbose
         disp('Just evaluating the given guess.');
@@ -229,6 +234,12 @@ dummy_link_motion.surface_contact_rotation = path_rot_integrated;
 dummy_link_motion.surface_contact_normal = up_vector_span;
 dummy_link_motion.world_contact_position = world_contact_desired_span;
 dummy_link_motion.world_surface_velocity_relative = surface_vel_span;
+dummy_link_motion.data_tspan = tspan;
+dummy_link_motion.ball_pos = ball_pos;
+dummy_link_motion.ball_vel = ball_vel;
+dummy_link_motion.ball_accel = ball_accel;
+dummy_link_motion.ball_omega = ball_omega;
+dummy_link_motion.ball_quat = ball_quat;
 
 joint_plan.breaks = breaks_optim;
 joint_plan.angles = joint_angles_optim;
@@ -246,6 +257,15 @@ end
         err = cost_fun(X(1,:), X(2,:), X(3,:),X(4,:), options.num_optimization_ik_waypoints, true);
     end
 
+
+%     function point_to_project = sample_on_capsule(projection_height, projection_angle)
+%             
+%         if projection_height 
+%            point_to_project_to_surface = [projection_height + cylinder_center_offset_x, ...
+%             cylinder_radius * cos(projection_angle) + cylinder_center_offset_y, ...
+%             cylinder_radius * sin(projection_angle) + cylinder_center_offset_z];
+%     end
+
 % Cost function with full result outputs.
     function [error, jnt_angles_optim, breaks_optim, solinfo_optim, result_path_pts, path_rot_integrated, world_contact_desired_span, up_vector_span, surface_vel_span] = ...
             cost_fun(projection_height, projection_angle, placement_ang, arc_angle, num_ik_waypoints, kill_on_bad_sol)
@@ -254,12 +274,24 @@ end
             cylinder_radius * cos(projection_angle) + cylinder_center_offset_y, ...
             cylinder_radius * sin(projection_angle) + cylinder_center_offset_z];
         
+%         if projection_height < blah
+%             height_deficit = blah - projection_height;
+%             baseline_position = [cylinder_center_offset_x; cylinder_center_offset_y; cylinder_center_offset_z];
+%             sphere_pos_unrotated = [-cylinder_radius*sin(height_deficit/cylinder_radius);
+%                 cylinder_radius*cos(height_deficit/cylinder_radius);
+%                 0];
+%             
+%             sphere_rot = [1, 0, 0; 0, cos(projection_angle), -sin(projection_angle); 0, sin(projection_angle), cos(projection_angle)];
+%             
+%             point_to_project_to_surface = sphere_rot * sphere_pos_unrotated + baseline_position;
+%         end
+%         
         % Evaluate terms which depend on the chosen arc angle.
         world_contact_desired_span = world_contact_loc_desired_fcn(arc_angle * ones(size(tspan)));
         contact_desired_rel_com_span = contact_loc_desired_rel_com_fcn(arc_angle * ones(size(tspan)));
         
         up_vector_span = contact_desired_rel_com_span/problem.ball_radius;
-        surface_vel_span = cross(omegaspan, contact_desired_rel_com_span, 2); % Do we want a diff(contact_loc) term?
+        surface_vel_span = cross(ball_omega, contact_desired_rel_com_span, 2); % Do we want a diff(contact_loc) term?
         
         % Attempt the kinematics.
         [jnt_angles_optim, breaks_optim, solinfo_optim, proj_start_pt, result_path_pts, path_rot_integrated, fail_flag] = attempt_kinematics_over_surface( ...
@@ -285,6 +317,9 @@ end
             solres = [solinfo_optim{:}];
             error = sum([solres.PoseErrorNorm]);%.*(length(solres):-1:1));
             error = error/num_ik_waypoints;
+            if options.verbose
+               fprintf('Successful integration for a cost of: %f.\n', error); 
+            end
         end
 
         if options.debug_plot
@@ -309,6 +344,7 @@ end
         cylinder_center_offset_y = (miny + maxy)/2;
         cylinder_center_offset_z = (minz + maxz)/2;
         cylinder_center_offset_x = minx;
-        cylinder_height = maxx - minx;
+        cylinder_height = maxx - minx;   
     end
+
 end

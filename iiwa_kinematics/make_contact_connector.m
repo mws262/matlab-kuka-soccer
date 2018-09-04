@@ -20,13 +20,13 @@ default_problem.dummy_link_motion_current = '';
 default_problem.ball_radius = 0.1;
 default_problem.ik_link = 'iiwa_link_6';
 default_problem.number_of_waypoints = 1; % Number of waypoints to optimize. The approach/departure waypoints are not counted in this parameter.
-default_problem.optim_initial_guess = zeros(5 * default_problem.number_of_waypoints, 1); % Size depends on the number of waypoints.
+default_problem.optim_initial_guess = 2*ones(5 * default_problem.number_of_waypoints, 1); % Size depends on the number of waypoints.
 
 %% Options structure.
-default_options.departure.velocity_normal = 0.5; % Normal component of velocity during the approach/departure segments. Tangent velocity is fully-determined.
+default_options.departure.velocity_normal = 0.6; % Normal component of velocity during the approach/departure segments. Tangent velocity is fully-determined.
 default_options.departure.duration_fraction = 1/8; % Fraction of the total connector time spent on approach/departure segments.
 
-default_options.approach.velocity_normal = 0.5;
+default_options.approach.velocity_normal = 0.6;
 default_options.approach.duration_fraction = 1/8;
 
 default_options.collision_ball_radius = 0.115 + 0.02; % During connector, collisions are checked by assuming foot is a sphere with this radius. Hand-tuned to fit around the whole foot area nicely.
@@ -42,9 +42,9 @@ default_options.save_file = 'noncontact_kinematics_result.mat';
 
 % Optimization bounds.
 default_options.min_perpendicular_shift = -0.1; % Outward perpendicular shift from nominal linear connector.
-default_options.max_perpendicular_shift = 0.4; 
+default_options.max_perpendicular_shift = 0.5; 
 default_options.min_upward_shift = 0.0; % Upward perpendicular shift from nominal linear connector. 
-default_options.max_upward_shift = 0.4;
+default_options.max_upward_shift = 0.5;
 default_options.min_orientation_angle = -pi; % Orientation bounds. Probably a terrible idea to limit these since they have little physical significance right now. May want 0 to 2*pi instead or something but not a limited range.
 default_options.max_orientation_angle = pi;
 
@@ -115,17 +115,17 @@ if options.load_from_file
         if options.verbose
            disp('Load success.'); 
         end
-        if options.just_evaluate_guess
-            if options.verbose
-                disp('Already loaded, and just_evaluate_guess is true. Nothing to do. Returning old solution.');
-            end
-            return;
-        else
+%         if options.just_evaluate_guess
+%             if options.verbose
+%                 disp('Already loaded, and just_evaluate_guess is true. Nothing to do. Returning old solution.');
+%             end
+%             return;
+%         else
             if options.verbose
                 disp('Loaded solution, but just_evaluate_guess is false. Going to rerun the optimization using the old solution as a guess.');
             end
             problem.optim_initial_guess = optim_solution; % Load the solution, but just use it as a guess to re-run.
-        end
+%         end
     else
         warning('Load from file is true, but the save file was not found. Re-running as if load were not true.');
     end
@@ -150,7 +150,7 @@ end
 % Start conditions determined by the first set of dummy link motions and
 % joint plan.
 contact_point_start = problem.dummy_link_motion_previous.world_contact_position(end,:);
-contact_point_velocity_start = problem.dummy_link_motion_previous.world_surface_velocity_relative(end,:);
+contact_point_velocity_start = problem.dummy_link_motion_previous.world_surface_velocity_relative(end,:) + problem.dummy_link_motion_previous.ball_vel(end,:);
 joint_config_start = problem.joint_plan_previous.angles{end};
 start_t = problem.joint_plan_previous.breaks(end);
 ball_com_start = ppval(problem.ball_position_pp, start_t)';
@@ -158,7 +158,7 @@ ball_com_start = ppval(problem.ball_position_pp, start_t)';
 % End conditions determined by the second set of dummy link motions and
 % joint plan.
 contact_point_end = problem.dummy_link_motion_current.world_contact_position(1,:);
-contact_point_velocity_end = problem.dummy_link_motion_current.world_surface_velocity_relative(1,:);
+contact_point_velocity_end = problem.dummy_link_motion_current.world_surface_velocity_relative(1,:) + problem.dummy_link_motion_current.ball_vel(1,:);
 joint_config_end = problem.joint_plan_current.angles{1};
 end_t = problem.joint_plan_current.breaks(1);
 
@@ -167,10 +167,10 @@ if end_t <= start_t
         if options.verbose
            disp('Looks like this contact-connector needs to wrap around back to the beginning. Overriding the end time which was 0.'); 
         end
-        end_t = problem.ball_position_pp.breaks(end);
     else
-        error('End time must be greater than the start time.');
+        warning('End time was not greater than the start time.');
     end
+            end_t = problem.ball_position_pp.breaks(end);
 end
 ball_com_end = ppval(problem.ball_position_pp, end_t)';
 
