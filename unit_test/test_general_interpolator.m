@@ -1,11 +1,12 @@
-function test_general_interpolator()
+function exceptions = test_general_interpolator()
 %TEST_GENERAL_INTERPOLATOR Test the general interpolator function.
 tolerance = 1e-15;
 
 theader('Testing general_interpolator');
-do_test(@single_dim);
-e = do_test(@two_d);
-do_test(@three_d);
+exceptions = {};
+exceptions{end+1} = do_test(@single_dim);
+exceptions{end+1} = do_test(@two_d);
+exceptions{end+1} = do_test(@three_d);
 
 
     function single_dim()
@@ -31,6 +32,14 @@ do_test(@three_d);
         assert_error(@()(single_dim_interp.add_to_end_at_time(-2, 1)));
         assert_error(@()(single_dim_interp.add_to_end_at_time(-1, 1)));
         assert_error(@()(single_dim_interp.add_to_end_at_time(6, 1)));
+        assert_error(@()(single_dim_interp.add_to_end_at_time(12, NaN)));
+        assert_error(@()(single_dim_interp.add_to_end_at_time(NaN, 12)));
+        % Bad query times should throw.
+        assert_error(@()(single_dim_interp.get_at_time(7)));
+        assert_error(@()(single_dim_interp.get_at_time(-2)));        
+        assert_error(@()(single_dim_interp.get_at_time(NaN)));
+        assert_error(@()(single_dim_interp.get_at_time([1,2])));
+
     end
 
     function two_d()
@@ -42,7 +51,7 @@ do_test(@three_d);
         dspan2 = rand(size(tspan2,1),dim);
         two_d_interp.add_to_end_at_time(tspan2,dspan2);
         
-        assert_near(two_d_interp.get_at_time(3), interp1(tspan2, dspan2, 2), tolerance, 'general_interpolator does not agree with interp1 in 2d case.');
+        assert_near(two_d_interp.get_at_time(3), interp1(tspan2, dspan2, 3), tolerance, 'general_interpolator does not agree with interp1 in 2d case.');
         assert_near(two_d_interp.get_at_time(-0.99), interp1(tspan2, dspan2, -0.99), tolerance, 'general_interpolator does not agree with interp1 in 2d case.');
         assert_near(two_d_interp.get_at_time(-1), interp1(tspan2, dspan2, -1), tolerance, 'general_interpolator does not agree with interp1 in 2d case.');
         assert_near(two_d_interp.get_at_time(5), interp1(tspan2, dspan2, 5), tolerance, 'general_interpolator does not agree with interp1 in 2d case.');
@@ -63,9 +72,23 @@ do_test(@three_d);
         dspan3 = rand([3, 3, length(tspan3)]);
         
         three_d_interp.add_to_end_at_time(tspan3,dspan3);
-        % assert_near(three_d_interp.get_at_time(3), interp1(tspan2, dspan2, 3), tolerance, 'general_interpolator does not agree with interp1 in 3d case.');
         
-        % TODO TOMORROW.
+        % Check boundaries
+        assert_near(three_d_interp.get_at_time(-1), dspan3(:,:,1), tolerance, 'general_interpolator does not agree with interp1 in 3d case.');
+        assert_near(three_d_interp.get_at_time(5), dspan3(:,:,end), tolerance, 'general_interpolator does not agree with interp1 in 3d case.');
+
+        % Check some mid time.
+        mid_t1 = 1.28;
+        lower_idx = find(tspan3 < mid_t1, 1, 'last');
+        interp_mid1 = (dspan3(:,:,lower_idx + 1) - dspan3(:,:,lower_idx))*(mid_t1 - tspan3(lower_idx))/(tspan3(lower_idx + 1) - tspan3(lower_idx)) + dspan3(:,:,lower_idx);
+        assert_near(three_d_interp.get_at_time(mid_t1), interp_mid1, tolerance, 'general_interpolator does not agree with interp1 in 3d case.');
+        
+        new_ele = rand(3);
+        three_d_interp.add_to_end_at_time(6, new_ele);
+        mid_t2 = 5.47;
+        interp_mid2 = (new_ele - dspan3(:,:,end))*(mid_t2 - tspan3(end))/(6 - tspan3(end)) + dspan3(:,:,end);
+        assert_near(three_d_interp.get_at_time(mid_t2), interp_mid2, tolerance, 'general_interpolator does not agree with interp1 in 3d case.');
+        
         
     end
 

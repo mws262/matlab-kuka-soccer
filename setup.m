@@ -12,6 +12,7 @@ addpath ./figure_generation/
 addpath ./dynamics/
 addpath ./derived_autogen/
 addpath ./data/
+addpath ./unit_test/framework
 
 % Runs all tests.
 test_all();
