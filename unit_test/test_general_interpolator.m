@@ -2,7 +2,7 @@ function exceptions = test_general_interpolator()
 %TEST_GENERAL_INTERPOLATOR Test the general interpolator function.
 tolerance = 1e-15;
 
-theader('Testing general_interpolator');
+theader('Testing general_interpolator.');
 exceptions = {};
 exceptions{end+1} = do_test(@single_dim);
 exceptions{end+1} = do_test(@two_d);

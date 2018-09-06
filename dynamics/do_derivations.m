@@ -80,6 +80,8 @@ full_contact_arc_shifted = full_contact_arc + R*k + rx*i + ry*j; % Shift to posi
 equator_contact_velocity = cross([wx,wy,wz], arm_contact_pt_equator) + [vx, vy, 0];
 
 vsurf_general = (vx*i + vy*j) + cross((wx*i + wy*j + wz*k), full_contact_arc); % Surface velocity of ball at contact point, regardless of contact angle along arc.
+
+% NOTE: these have singularities.
 isurf = simplify(cross(k, -full_contact_arc/norm(full_contact_arc))); % Surface-aligned 'horizontal' component. Note cross( is,js) = vector pointing towards center of ball from contact point.
 isurf = simplify(isurf/norm(isurf));
 jsurf = simplify(cross(-full_contact_arc/norm(full_contact_arc), isurf)); % Surface-aligned 'vertical component'
