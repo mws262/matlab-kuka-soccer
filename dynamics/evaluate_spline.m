@@ -27,6 +27,7 @@ function [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
 validateattributes(pos_pp, {'struct'}, {});
 validateattributes(ball_radius, {'numeric'}, {'scalar', 'positive', 'finite', 'real'});
 validateattributes(num_pts, {'numeric'}, {'scalar', 'positive', 'integer'});
+
 assert(pos_pp.dim == 3, 'Must be a 3-dimensional spline.');
 
 tspan = linspace(pos_pp.breaks(1), pos_pp.breaks(end), num_pts)';

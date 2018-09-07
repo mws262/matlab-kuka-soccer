@@ -5,6 +5,8 @@ function [ball_patch, ball_verts_untransformed] = make_ball(radius)
 %   Patch object is returned, along with the initial vertices for later
 %   transforming relative to the origin.
 
+validateattributes(radius, {'single', 'double'}, {'real', 'positive', 'scalar'});
+
 [sphere_x,sphere_y,sphere_z] = sphere(25);
 ball_patch = patch(surf2patch(radius * sphere_x, radius * sphere_y, radius * sphere_z, 100*radius * sphere_z));
 ball_verts_untransformed = ball_patch.Vertices;

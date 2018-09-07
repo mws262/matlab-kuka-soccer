@@ -1,4 +1,4 @@
-function output = mergeOptions(default, user,name)
+function output = mergeOptions(default, user, name)
 % output = mergeOptions(default, user, name)
 %
 % Merge a default options struct with a user-defined options struct. Works
@@ -23,6 +23,8 @@ function output = mergeOptions(default, user,name)
 %   This function works recursively. For example, if there is a struct
 %   inside of a struct, then it will recursively apply this merge.
 %
+
+validateattributes(default, {'struct'}, {});
 
 %%%% Start by assuming that the OUTPUT is just the DEFAULT
 output = default;

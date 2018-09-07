@@ -33,4 +33,10 @@ exceptions = [exceptions, ex];
 ex = do_test(@test_cmaes);
 exceptions = [exceptions, ex];
 
+ex = do_test(@test_point2trimesh_with_normals);
+exceptions = [exceptions, ex];
+
+ex = do_test(@test_get_rotation_from_vecs);
+exceptions = [exceptions, ex];
+
 report_exceptions(exceptions);

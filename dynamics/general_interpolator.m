@@ -2,7 +2,7 @@ classdef general_interpolator < handle
     %% General purpose interpolator.
     % Data can be added again and again as long as the times are
     % monotonically increasing. If the data is one-dimensional, then the
-    % first dimension should be time. If it is higher dimensional (e.g. 
+    % first dimension should be time. If it is higher dimensional (e.g.
     % rotation matrices), then the last dimension should be time.
     
     properties
@@ -12,16 +12,19 @@ classdef general_interpolator < handle
     end
     methods
         function obj = general_interpolator(data_dimensions)
+            validateattributes(data_dimensions, {'numeric'}, {'integer', 'positive'});
             obj.data_dimensions = data_dimensions;
         end
         
         function add_to_end_at_time(obj, tspan, dspan) % Add to the end while preserving the existing times in tspan rather than offsetting.
-            if any(isnan(tspan)) | any(isnan(dspan))
-               error('Tried to give an interpolator arrays with some NaNs in them.');
-            end
+
+            validateattributes(tspan, {'single', 'double'}, {'vector', 'increasing', 'real', 'nonnan'});
+            validateattributes(dspan, {'single', 'double'}, {'real', 'nonnan'});
+            
             if isrow(tspan)
                 tspan = tspan';
             end
+            
             if ~isempty(obj.tspan_complete) & tspan(1) <= obj.tspan_complete(end)
                 error('Tried to add a timespan at the end which is not greater than the existing times.');
             end
@@ -47,18 +50,8 @@ classdef general_interpolator < handle
             obj.dspan_complete = [obj.dspan_complete; dspan_resize];
         end
         function dat_at_time = get_at_time(obj, tget)
-            if isnan(tget)
-               error('Tried to get interpolated value at a NaN time.'); 
-            end
-            if length(tget) > 1
-                error('Can only query one time at once. This is a limitatin which may be lifted later.');
-            end
-            % Check for out of interval times.
-            if tget < obj.tspan_complete(1)
-                error('Specified time, %f, is less than the start time, %f.\n', tget, obj.tspan_complete(1));
-            elseif tget > obj.tspan_complete(end)
-                error('Specified time, %f, is greater than the start time, %f.\n', tget, obj.tspan_complete(end));
-            end
+            
+            validateattributes(tget, {'single', 'double'}, {'nonnan', 'scalar', 'real', '<=', obj.tspan_complete(end), '>=', obj.tspan_complete(1)});
             
             dat_interp = interp1(obj.tspan_complete, obj.dspan_complete, tget);
             
@@ -68,6 +61,8 @@ classdef general_interpolator < handle
             else
                 dat_at_time = dat_interp;
             end
+            
+            validateattributes(dat_at_time, {'single', 'double'}, {'real'});
             
         end
         % Same as build-in ndims, but can return 1 if there is only 1

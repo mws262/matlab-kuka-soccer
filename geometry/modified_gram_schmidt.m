@@ -1,6 +1,6 @@
 function [Q,R]=modified_gram_schmidt(A)
 % MODIFIED_GRAM_SCHMIDT For re-orthonormalizing rotation matrices.
-assert(all(size(A) == [3,3]));
+validateattributes(A, {'single', 'double'}, {'real', 'size', [3,3]});
 
 [m,n]=size(A);
 V=A;

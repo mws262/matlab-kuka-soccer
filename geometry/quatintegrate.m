@@ -4,6 +4,10 @@ function quatspan = quatintegrate(tspan, quat_init, omegaspan)
 % normalization is taken away from both rk4 and euler, euler loses unit
 % length by about a factor of bajillion more.
 
+validateattributes(tspan, {'numeric'}, {'real', 'increasing', 'vector'});
+validateattributes(quat_init, {'numeric'}, {'real', 'vector', '>=', -1, '<=', 1});
+validateattributes(omegaspan, {'numeric'}, {'real', 'ncols', 3, 'nrows', length(tspan)});
+
 if iscolumn(quat_init)
     quat_init = quat_init';
 end
@@ -32,6 +36,8 @@ for i = 1:length(tspan) - 1
     quatspan(i + 1, :) = curr_quat;
 end
 quatspan(:,1) = -quatspan(:,1); % Matlab has some left-handed stuff thrown around.
+
+validateattributes(quatspan, {'numeric'}, {'real', 'ncols', 4, 'nrows', length(tspan)});
 
     function qdt = qdot(current_q, current_omega)
         qdt = 0.5 * quatmultiply([0, current_omega], current_q);
