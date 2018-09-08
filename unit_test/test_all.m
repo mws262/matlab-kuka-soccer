@@ -39,4 +39,7 @@ exceptions = [exceptions, ex];
 ex = do_test(@test_get_rotation_from_vecs);
 exceptions = [exceptions, ex];
 
+ex = do_test(@test_qp_spline);
+exceptions = [exceptions, ex];
+
 report_exceptions(exceptions);
