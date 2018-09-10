@@ -14,9 +14,7 @@ exceptions{end+1} = do_test(@special_cases);
         
         rot = get_rotation_from_vecs(v1,v2);
         % Check SO3-ness of rotation.
-        assert_near(norm(rot(:,1)),1, tolerance, 'non-unit rotation matrix row');
-        assert_near(norm(rot(:,2)),1, tolerance, 'non-unit rotation matrix row'); 
-        assert_near(norm(rot(:,3)),1, tolerance, 'non-unit rotation matrix row');
+        assert_near(det(rot),1, tolerance, 'non-unit rotation matrix row');
         assert_near(cross(rot(:,1), rot(:,2)), rot(:,3), tolerance, 'non-orthogonal rotation matrix');
         assert_near(cross(rot(:,2), rot(:,3)), rot(:,1), tolerance, 'non-orthogonal rotation matrix');
 
@@ -29,9 +27,7 @@ exceptions{end+1} = do_test(@special_cases);
         rot = get_rotation_from_vecs(v1,v2);
 
         % Check SO3-ness of rotation.
-        assert_near(norm(rot(:,1)),1, tolerance, 'non-unit rotation matrix row');
-        assert_near(norm(rot(:,2)),1, tolerance, 'non-unit rotation matrix row'); 
-        assert_near(norm(rot(:,3)),1, tolerance, 'non-unit rotation matrix row');
+        assert_near(det(rot), 1, tolerance, 'non-unit rotation matrix row');
         assert_near(cross(rot(:,1), rot(:,2)), rot(:,3), tolerance, 'non-orthogonal rotation matrix');
         assert_near(cross(rot(:,2), rot(:,3)), rot(:,1), tolerance, 'non-orthogonal rotation matrix');
 
@@ -48,9 +44,16 @@ exceptions{end+1} = do_test(@special_cases);
         
         rot = get_rotation_from_vecs(v1,v2); % 180 deg
         assert_near((v2/norm(v2))', rot*(v1/norm(v1))', tolerance, 'Rotation not consistent.');
-
+        assert_near(det(rot), 1, tolerance, 'non-unit rotation matrix row');
+        assert_near(cross(rot(:,1), rot(:,2)), rot(:,3), tolerance, 'non-orthogonal rotation matrix');
+        assert_near(cross(rot(:,2), rot(:,3)), rot(:,1), tolerance, 'non-orthogonal rotation matrix');
+        
+        
         rot = get_rotation_from_vecs(v1,v1);
-        assert_near((v1/norm(v1))', rot*(v1/norm(v1))', tolerance, 'Rotation not consistent.');    
+        assert_near((v1/norm(v1))', rot*(v1/norm(v1))', tolerance, 'Rotation not consistent.');
+        assert_near(det(rot), 1, tolerance, 'non-unit rotation matrix row');
+        assert_near(cross(rot(:,1), rot(:,2)), rot(:,3), tolerance, 'non-orthogonal rotation matrix');
+        assert_near(cross(rot(:,2), rot(:,3)), rot(:,1), tolerance, 'non-orthogonal rotation matrix');
     end
 
 end

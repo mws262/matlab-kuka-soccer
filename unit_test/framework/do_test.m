@@ -20,7 +20,7 @@ try
     
 catch ex
     cprintf('*[0.8, 0.1, 0.1]', 'FAIL\n');
-    except = {ex};
+    except = ex;
     return;
 end
 cprintf('*[0.1, 0.8, 0.1]', 'PASS\n');

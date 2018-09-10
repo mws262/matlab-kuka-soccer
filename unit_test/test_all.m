@@ -45,4 +45,7 @@ exceptions = [exceptions, ex];
 ex = do_test(@test_nlp_spline);
 exceptions = [exceptions, ex];
 
+ex = do_test(@test_find_mesh_contact_tform);
+exceptions = [exceptions, ex];
+
 report_exceptions(exceptions);

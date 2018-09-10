@@ -12,8 +12,8 @@ c = dot(v1, v2);
 s = norm(v);
 
 if s < 1e-15
-    if c < 0 % 180 degree flip. WARNING this probably isn't what we want to be happening
-        rotation = -eye(3);
+    if c < 0 % 180 degree flip. WARNING This is kind of sketchy...          
+        rotation = axang2rotm([cross(v1,v1+[1,5,2]), pi]);
     else % 0-degree 'rotation'
         rotation = eye(3);
     end

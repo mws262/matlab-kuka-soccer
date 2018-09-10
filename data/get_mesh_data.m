@@ -16,19 +16,19 @@ function mesh_struct = get_mesh_data(mesh_name)
 
 switch mesh_name
     case 'dummy_manipulator_high_res'
-        geo_data = load('../data/iiwa_merged_end_effector.mat');
+        geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.merged_iiwa(1);
         return;
     case 'dummy_manipulator_mid_res'
-        geo_data = load('../data/iiwa_merged_end_effector.mat');
+        geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.merged_iiwa(2);
         return;
     case 'dummy_manipulator_low_res'
-        geo_data = load('../data/iiwa_merged_end_effector.mat');
+        geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.merged_iiwa(3);
         return;
     case 'horiz_plane'
-        geo_data = load('../data/iiwa_merged_end_effector.mat');
+        geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.merged_iiwa(4);
         return;
     case 'twentyhedron'
@@ -44,7 +44,7 @@ switch mesh_name
         mesh_struct = cube;
         return;
     case 'manipulator_banned1'
-        geo_data = load('../data/iiwa_merged_end_effector.mat');
+        geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.banned_regions;
         return;     
 end
