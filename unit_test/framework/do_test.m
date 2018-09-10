@@ -1,6 +1,9 @@
 function except = do_test(testHandle)
 %DO_TEST Run tests, grade PASS/FAIL. Do not throw exceptions, just keep a
 %list to rethrow later.
+
+validateattributes(testHandle, {'function_handle'}, {});
+
 except = {};
 try
     if nargout(testHandle) > 0 % If the test below this one can also throw exceptions, propagate these up the chain.

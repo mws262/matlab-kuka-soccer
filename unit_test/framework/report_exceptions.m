@@ -2,6 +2,8 @@ function report_exceptions(exception_cell)
 %REPORT_EXCEPTIONS Report all exceptions encountered while running the
 %tests.
 
+validateattributes(exception_cell, {'cell'}, {});
+
 if ~isempty(exception_cell)
     fprintf('_______________________________________\n');
     cprintf('*red', '%d exception(s) to report.\n\n', numel(exception_cell));

@@ -62,11 +62,22 @@ end
 problem = mergeOptions(default_problem, user_problem, 'Problem struct');
 options = mergeOptions(default_options, user_options, 'Options struct');
 
-if isempty(problem.pinned_breaks)
-    error('Breaks were not user-provided.');
+validateattributes(problem.pinned_breaks, {'single', 'double'}, {'real', 'vector', 'increasing'});
+validateattributes(problem.pinned_knots, {'single', 'double'}, {'real', 'nonempty'});
+validateattributes(problem.adjacent_segment_product_scaling, {'numeric'}, {'real', 'scalar', 'positive', '<=', 1});
+validateattributes(problem.polys_per_pinned_knot, {'numeric'}, {'scalar', 'integer', 'positive'});
+
+% Fix messed up transposes regarding knots.
+if size(problem.pinned_knots, 1) ~= length(problem.pinned_breaks)
+    if size(problem.pinned_knots, 2) ~= length(problem.pinned_breaks)
+        error('Input knots and breaks do not have a matching number of elements.');
+    else
+        problem.pinned_knots = problem.pinned_knots';
+    end
 end
-if isempty(problem.pinned_knots)
-    error('Knots were not user-provided.');
+
+if size(problem.pinned_knots, 2) ~= 2 && size(problem.pinned_knots, 3) ~= 3
+   error('Input knots must be  2d or 3d points.');
 end
 
 if options.verbose
