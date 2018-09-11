@@ -1,5 +1,3 @@
-%% MATT NOTE: I changed this to take function handles rather than string names of functions. This makes using lambdas possible.
-
 function [xmin, ...      % minimum search point of last iteration
 	  fmin, ...      % function value of xmin
 	  counteval, ... % number of function evaluations done
@@ -13,6 +11,9 @@ function [xmin, ...      % minimum search point of last iteration
     inopts, ...    % options struct, see defopts below
     varargin )     % arguments passed to objective function 
 % cmaes.m, Version 3.33.integer, last change: April, 2012 
+% MATT NOTE: I changed this to take function handles rather than string 
+% names of functions. This makes using lambdas possible.
+
 % CMAES implements an Evolution Strategy with Covariance Matrix
 % Adaptation (CMA-ES) for nonlinear function minimization.  For
 % introductory comments and copyright (GPL) see end of file (type 

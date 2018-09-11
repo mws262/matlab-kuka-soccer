@@ -1,15 +1,44 @@
-function [ distance, surface_point, normal_vec, face_idx ] = point2trimesh_with_normals(point, mesh_data)
+function [ distance, surface_point, normal_vec, face_idx ] = point2trimesh_with_normals(point_to_project, mesh_data)
+% POINT2TRIMESH_WITH_NORMALS Projects a point to the nearest face, edge or
+% vertex.
+%
+%   [ distance, surface_point, normal_vec, face_idx ] = POINT2TRIMESH_WITH_NORMALS(point, mesh_data)
+%
+%   Inputs:
+%       `point_to_project` -- Point in 3D space in the coordinates of the
+%       given mesh. Point gets projected to the nearest point on the mesh.
+%       `mesh_data` -- Structure with faces, vertices, face_normals, and
+%       vertex_normals data.
+%   Outputs:
+%       `distance` -- Distance from the provided point to its projection on
+%       the surface of the mesh.
+%       `surface_point` -- Point on the surface of the mesh. Corresponds to
+%       a vertex, a point on an edge, or a point on the plane of a triangle
+%       surface.
+%       `normal_vec` -- Outward-facing normal vector of the projected
+%       surface location. These are smooth normal vectors, interpolated
+%       from the given vertex normals.
+%       `face_idx` -- Index of the face that was projected to. If the
+%       projection went to a vertex or edge, this will be one of the
+%       adjacent faces.
+%
+%   This is drastically edited and reduced from point2trimesh from the
+%   File Exchange.
+%
+%   See also POINT2TRIMESH, FIND_MESH_CONTACT_TFORM, VALIDATE_MESH_STRUCT,
+%   TEST_POINT2TRIMESH_WITH_NORMALS.
+
 % Edited version which has about 1/20th the features. It accepts only one
 % point at a time. However, it does return face or vertex normals as
 % applicable.
 % Note that face idx might represent only an adjacent face if a vertex is
 % nearest.
 
-validateattributes(point, {'numeric'}, {'2d', 'numel', 3, 'real'});
-validateattributes(mesh_data,{'struct'},{});
+validateattributes(point_to_project, {'numeric'}, {'2d', 'numel', 3, 'real'});
+validate_mesh_struct(mesh_data);
 
 %% Distance Calculation
-    [distance,surface_point,face_idx,normal_vec] = processPoint(mesh_data.faces, mesh_data.vertices, point, mesh_data.face_normals, mesh_data.vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces);
+    [distance,surface_point,face_idx,normal_vec] = processPoint(mesh_data.faces, mesh_data.vertices, point_to_project, mesh_data.face_normals, mesh_data.vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces);
 end
 
 %% Non-vectorized Distance Functions

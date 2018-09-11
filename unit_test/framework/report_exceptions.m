@@ -1,6 +1,18 @@
 function report_exceptions(exception_cell)
-%REPORT_EXCEPTIONS Report all exceptions encountered while running the
-%tests.
+% REPORT_EXCEPTIONS Reports all exceptions encountered while running unit
+% tests. The purpose is to avoid throwing exceptions until all tests have
+% run.
+%
+%   REPORT_EXCEPTIONS(exception_cell)
+%
+%   Inputs:
+%       `exception_cell` -- Cell array with MException objects encountered
+%       while running one or more unit tests.
+%   Outputs: <none>
+%
+%   See also VALIDATEATTRIBUTES, ASSERT, ASSERT_NEAR, DO_TEST,
+%   ASSERT_ERROR, THEADER, TNAME, REPORT_EXCEPTIONS.
+%
 
 validateattributes(exception_cell, {'cell'}, {});
 

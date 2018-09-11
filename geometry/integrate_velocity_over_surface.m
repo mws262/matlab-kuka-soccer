@@ -1,12 +1,11 @@
-function [result_path_pts, result_path_normals, rotations, failure_flag] = integrate_velocity_over_surface(user_problem, user_options)
-%problem.time_vector, vspan, initial_position, up_vectors, approach_ang, patch_struct, varargin)
+function output = integrate_velocity_over_surface(user_problem, user_options)
 
 %% Problem structure.
 default_problem.time_vector = [];
 default_problem.velocity_vector = [];
-default_probelm.initial_surface_point = [];
-default_problem.up_vectors = [];
-default_problem.approach_ang = [];
+default_problem.initial_surface_point = [];
+default_problem.normals_to_match = [];
+default_problem.orientations_about_normal = [];
 default_problem.mesh_data = '';
 
 %% Options structure.
@@ -15,22 +14,22 @@ default_options.banned_region_mesh = '';
 
 %% Return template problem / options.
 if nargin == 0
-    result_path_pts = default_problem;
+    output.mesh_surface_path = default_problem;
     return;
 elseif nargin == 1 % If single argument given, return either options or probelm structure.
     switch user_problem
         case 'options'
-            result_path_pts = default_options;
+            output.mesh_surface_path = default_options;
         case 'problem'
-            result_path_pts = default_problem;
+            output.mesh_surface_path = default_problem;
         otherwise
-            warning('Unrecognized single variable argument given: %s. Returning problem structure instead.', usr_problem);
-            result_path_pts = default_problem;
+            warning('Unrecognized single variable argument given: %s. Returning problem structure instead.', user_problem);
+            output.mesh_surface_path = default_problem;
     end
     return;
 end
 
-%% Merge user and default options.
+%% Merge user and default options and validate.
 problem = mergeOptions(default_problem, user_problem, 'Problem struct');
 options = mergeOptions(default_options, user_options, 'Options struct');
 
@@ -50,7 +49,7 @@ end
 % Make sure inputs are valid.
 validateattributes(problem.time_vector, {'single', 'double'}, {'real', 'vector', 'increasing', 'nonempty'});
 validateattributes(problem.velocity_vector, {'single', 'double'}, {'real', '2d'});
-
+validateattributes(problem.initial_surface_point, {'single', 'double'}, {'real', 'vector', 'numel', 3});
 validateattributes(options.check_banned_regions, {'logical'}, {'scalar'})
 validate_mesh_struct(problem.mesh_data);
 
@@ -58,58 +57,58 @@ if options.check_banned_regions
     validate_mesh_struct(options.banned_region_mesh);
 end
 
-failure_flag = false; % No failure unless otherwise detected.
+output.failure_flag = false; % No failure unless otherwise detected.
 
-% Figure out initial position stuff.
-[rotation, current_pt, current_normal] = find_mesh_contact_tform(initial_position, up_vectors(1,:), approach_ang, mesh_data);
+%% Setup the problem
+[rotation, current_pt, current_normal] = find_mesh_contact_tform(initial_position, problem.normals_to_match(1,:), problem.orientations_about_normal, problem.mesh_data);
 
 % Prepare output value arrays.
 total_steps = length(problem.time_vector);
-result_path_pts = zeros(total_steps,3);
-result_path_normals = zeros(total_steps,3);
-rotations = zeros(3,3,total_steps);
+output.mesh_surface_path = zeros(total_steps,3);
+output.mesh_surface_normals = zeros(total_steps,3);
+output.mesh_rotations = zeros(3,3,total_steps);
 
 % Add initial points.
-% result_path_pts(1,:) = current_pt;
-% result_path_normals(1,:) = current_normal;
-% rotations(:,:,1) = rotation;
+% output.mesh_surface_path(1,:) = current_pt;
+% output.mesh_surface_normals(1,:) = current_normal;
+% output.mesh_rotations(:,:,1) = rotation;
 
 % Integration loop.
 for i = 1:total_steps - 1
     dt = problem.time_vector(i + 1) - problem.time_vector(i);
     % Using current velocity.
-    vel_k1 = -vspan(i,:);
+    vel_k1 = -problem.velocity_vector(i,:);
     k_1 = (rotation*vel_k1')';
     
     % Half-step velocity evaluated with initial velocity.
     pt_star_k2 = current_pt + 0.5 * k_1 * dt;
-    [ ~, ~, new_normal_vec_k2 ] = point2trimesh_with_normals( pt_star_k2, mesh_data );
+    [ ~, ~, new_normal_vec_k2 ] = point2trimesh_with_normals( pt_star_k2, problem.mesh_data );
     rotation_k2 = get_rotation_from_vecs(current_normal, new_normal_vec_k2) * rotation;
-    vel_k2 = -(vspan(i,:) + vspan(i + 1,:))/2; % Just assume average.
+    vel_k2 = -(problem.velocity_vector(i,:) + problem.velocity_vector(i + 1,:))/2; % Just assume average.
     k_2 = (rotation_k2*vel_k2')';
     
     % Half-step velocity evaluated with intermediate velocity.
     pt_star_k3 = current_pt + 0.5 * k_2 * dt;
-    [ ~, ~, new_normal_vec_k3 ] = point2trimesh_with_normals( pt_star_k3, mesh_data );
+    [ ~, ~, new_normal_vec_k3 ] = point2trimesh_with_normals( pt_star_k3, problem.mesh_data );
     rotation_k3 = get_rotation_from_vecs(current_normal, new_normal_vec_k3) * rotation;
     vel_k3 = vel_k2;
     k_3 = (rotation_k3*vel_k3')';
     
     % Whole step velocity evaluated with second intermediate velocity.
     pt_star_k4 = current_pt + k_3 * dt;
-    [ ~, ~, new_normal_vec_k4 ] = point2trimesh_with_normals( pt_star_k4, mesh_data );
+    [ ~, ~, new_normal_vec_k4 ] = point2trimesh_with_normals( pt_star_k4, problem.mesh_data );
     rotation_k4 = get_rotation_from_vecs(current_normal, new_normal_vec_k4) * rotation;
-    vel_k4 = -vspan(i + 1,:);
+    vel_k4 = -problem.velocity_vector(i + 1,:);
     k_4 = (rotation_k4*vel_k4')';
     
     % Weight them and actually step forward.
     new_pt_star = current_pt + (1/6) * (k_1+2*k_2+2*k_3+k_4) * dt;
-    [ ~, surface_point, new_normal_vec ] = point2trimesh_with_normals( new_pt_star, mesh_data );
+    [ ~, surface_point, new_normal_vec ] = point2trimesh_with_normals( new_pt_star, problem.mesh_data );
     % Check if the integration has entered a banned area if a banned_region
     % was given in the arguments.
     if options.check_banned_regions
         if check_pt_inside_mesh(surface_point, options.banned_region_mesh)
-            failure_flag = true;
+            output.failure_flag = true;
             return;
         end
     end
@@ -120,14 +119,14 @@ for i = 1:total_steps - 1
     current_normal = new_normal_vec;
     rotation = modified_gram_schmidt(rotation); % Fix the rotation matrix.
     
-    result_path_pts(i,:) = current_pt;
-    result_path_normals(i,:) = current_normal;
-    rotations(:,:,i) = rotation;
+    output.mesh_surface_path(i,:) = current_pt;
+    output.mesh_surface_normals(i,:) = current_normal;
+    output.mesh_rotations(:,:,i) = rotation;
 end
 % TODO FIX THIS PROPERLY. Just replicating the next to last value so the
 % dimensions are nicer.
-result_path_pts(end,:) = result_path_pts(end - 1,:);
-result_path_normals(end,:) = result_path_normals(end - 1, :);
-rotations(:,:,end) = rotations(:,:,end - 1);
+output.mesh_surface_path(end,:) = output.mesh_surface_path(end - 1,:);
+output.mesh_surface_normals(end,:) = output.mesh_surface_normals(end - 1, :);
+output.mesh_rotations(:,:,end) = output.mesh_rotations(:,:,end - 1);
 
 end
