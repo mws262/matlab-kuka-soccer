@@ -1,3 +1,14 @@
+function test_all()
+% TEST_ALL Runs the full set of unit tests.
+%
+%   TEST_ALL()
+%
+%   Inputs: <none>
+%   Outputs: <none>
+%
+%   See also SETUP, DO_TEST, REPORT_EXCEPTIONS, ASSERT, VALIDATEATTRIBUTES.
+%
+
 exceptions = {};
 
 ex = do_test(@test_general_interpolator);
@@ -52,3 +63,4 @@ ex = do_test(@test_get_mesh_data);
 exceptions = [exceptions, ex];
 
 report_exceptions(exceptions);
+end

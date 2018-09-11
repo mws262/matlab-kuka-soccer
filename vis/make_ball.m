@@ -4,6 +4,15 @@ function [ball_patch, ball_verts_untransformed] = make_ball(radius)
 %   radius. It is added to the current axis.
 %   Patch object is returned, along with the initial vertices for later
 %   transforming relative to the origin.
+%
+%   MAKE_BALL(radius)
+%
+%   Inputs:
+%       `radius` -- Radius of the ball in meters.
+%   Outputs: <none>
+%
+%   See also MAKE_VISUALIZER_SCENE, PATCH.
+%
 
 validateattributes(radius, {'single', 'double'}, {'real', 'positive', 'scalar'});
 

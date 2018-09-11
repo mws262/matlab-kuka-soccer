@@ -1,4 +1,23 @@
-function mouse_motion_callback(src,dat)
+function mouse_motion_callback(src, dat)
+% MOUSE_MOTION_CALLBACK Function which gets called automatically when
+% assigned as a callback for the visualizer. Triggered on mouse motion.
+% This callback is turned off when mouse buttons are not pressed. When
+% mouse is dragged, orbits camera around the camera target. If shift is
+% pressed, translates both camera and camera target relative to the plane
+% of the ground.
+%
+%   MOUSE_MOTION_CALLBACK(src, dat)
+%
+%   Inputs:
+%       `src` -- Which graphics object triggered this callback.
+%       `dat` -- Data structure with information about the mouse event.
+%
+%   Outputs: <none>
+%
+%   See also MOUSE_MOTION_CALLBACK, MOUSE_UP_CALLBACK, MOUSE_DOWN_CALLBACK,
+%   KEY_CALLBACK, KEY_RELEASE_CALLBACK, PATCHFACEFCN, MAKE_VISUALIZER_SCENE.
+%
+
 global previous_pos;
 global shift_down;
 

@@ -1,5 +1,13 @@
 function test_check_pt_inside_mesh()
-%TEST_CHECK_PT_INSIDE_MESH
+% TEST_CHECK_PT_INSIDE_MESH Unit tests for check_pt_inside_mesh.
+%
+%   TEST_CHECK_PT_INSIDE_MESH()
+%
+%   Inputs: <none>
+%   Outputs: <none>
+%
+%   See also CHECK_PT_INSIDE_MESH, TEST_ALL.
+%
 
 theader('Testing test_check_pt_inside_mesh');
 
