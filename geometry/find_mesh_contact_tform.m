@@ -1,9 +1,5 @@
 function [total_tform, untformed_surface_pt, untformed_surface_normal] = find_mesh_contact_tform(point_near_mesh, destination_normal, ... 
     destination_location, normal_twist_angle, mesh_data)
-
-% Projects given point to mesh. Finds transformation from some plane
-% defined by up_vector to plane defined by nearest normal and the approach
-% angle.
 % up_vector -- we want the surface normal to point AGAINST this. E.g.
 % up_vector would be ball normal. We want to match surface normal AGAINST
 % this.

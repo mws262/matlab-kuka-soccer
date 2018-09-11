@@ -48,4 +48,7 @@ exceptions = [exceptions, ex];
 ex = do_test(@test_find_mesh_contact_tform);
 exceptions = [exceptions, ex];
 
+ex = do_test(@test_get_mesh_data);
+exceptions = [exceptions, ex];
+
 report_exceptions(exceptions);

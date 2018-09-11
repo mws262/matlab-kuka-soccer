@@ -11,7 +11,7 @@ exceptions{end+1} = do_test(@three_d);
 
     function single_dim()
         %% Single dimension
-        tname('Single dimensional test');
+        tname('1D case');
         single_dim_interp = general_interpolator(1);
         tspan1 = linspace(-1, 5, 12)';
         dspan1 = rand(size(tspan1));
@@ -44,7 +44,7 @@ exceptions{end+1} = do_test(@three_d);
 
     function two_d()
         %% 2D
-        tname('2D test');
+        tname('2D case');
         dim = 4;
         two_d_interp = general_interpolator(dim);
         tspan2 = linspace(-1, 5, 12)';
