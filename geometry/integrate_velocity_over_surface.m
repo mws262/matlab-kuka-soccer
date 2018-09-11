@@ -1,26 +1,70 @@
-function [result_path_pts, result_path_normals, rotations, failure_flag] = integrate_velocity_over_surface(tspan, vspan, initial_position, up_vectors, approach_ang, patch_struct, varargin)
-% Note: all resulting points are relative to untransformed (i.e. the input) version of the
-% mesh.
-% varargin can include a convex patch which represents banned areas.
-check_for_banned = false;
-if ~isempty(varargin)
-    check_for_banned = true;
-    banned_regions = varargin{1};
+function [result_path_pts, result_path_normals, rotations, failure_flag] = integrate_velocity_over_surface(user_problem, user_options)
+%problem.time_vector, vspan, initial_position, up_vectors, approach_ang, patch_struct, varargin)
+
+%% Problem structure.
+default_problem.time_vector = [];
+default_problem.velocity_vector = [];
+default_probelm.initial_surface_point = [];
+default_problem.up_vectors = [];
+default_problem.approach_ang = [];
+default_problem.mesh_data = '';
+
+%% Options structure.
+default_options.check_banned_regions = false;
+default_options.banned_region_mesh = '';
+
+%% Return template problem / options.
+if nargin == 0
+    result_path_pts = default_problem;
+    return;
+elseif nargin == 1 % If single argument given, return either options or probelm structure.
+    switch user_problem
+        case 'options'
+            result_path_pts = default_options;
+        case 'problem'
+            result_path_pts = default_problem;
+        otherwise
+            warning('Unrecognized single variable argument given: %s. Returning problem structure instead.', usr_problem);
+            result_path_pts = default_problem;
+    end
+    return;
+end
+
+%% Merge user and default options.
+problem = mergeOptions(default_problem, user_problem, 'Problem struct');
+options = mergeOptions(default_options, user_options, 'Options struct');
+
+% Correct transposes, if needed.
+if isrow(problem.time_vector)
+    problem.time_vector = problem.time_vector';
+end
+
+if size(problem.velocity_vector, 1) ~= length(problem.time_vector)
+   if size(problem.velocity_vector, 2) ~= length(problem.time_vector)
+       error('Input velocities do not match the dimension of the time span.');
+   else
+      problem.velocity_vector = problem.velocity_vector'; 
+   end    
+end
+
+% Make sure inputs are valid.
+validateattributes(problem.time_vector, {'single', 'double'}, {'real', 'vector', 'increasing', 'nonempty'});
+validateattributes(problem.velocity_vector, {'single', 'double'}, {'real', '2d'});
+
+validateattributes(options.check_banned_regions, {'logical'}, {'scalar'})
+validate_mesh_struct(problem.mesh_data);
+
+if options.check_banned_regions
+    validate_mesh_struct(options.banned_region_mesh);
 end
 
 failure_flag = false; % No failure unless otherwise detected.
-
-% Unpack mesh info.
-faces = patch_struct.faces;
-vertices = patch_struct.vertices;
-face_normals = patch_struct.face_normals;
-vertex_normals = patch_struct.vertex_normals;
 
 % Figure out initial position stuff.
 [rotation, current_pt, current_normal] = find_mesh_contact_tform(initial_position, up_vectors(1,:), approach_ang, mesh_data);
 
 % Prepare output value arrays.
-total_steps = length(tspan);
+total_steps = length(problem.time_vector);
 result_path_pts = zeros(total_steps,3);
 result_path_normals = zeros(total_steps,3);
 rotations = zeros(3,3,total_steps);
@@ -32,7 +76,7 @@ rotations = zeros(3,3,total_steps);
 
 % Integration loop.
 for i = 1:total_steps - 1
-    dt = tspan(i + 1) - tspan(i);
+    dt = problem.time_vector(i + 1) - problem.time_vector(i);
     % Using current velocity.
     vel_k1 = -vspan(i,:);
     k_1 = (rotation*vel_k1')';
@@ -63,8 +107,8 @@ for i = 1:total_steps - 1
     [ ~, surface_point, new_normal_vec ] = point2trimesh_with_normals( new_pt_star, mesh_data );
     % Check if the integration has entered a banned area if a banned_region
     % was given in the arguments.
-    if check_for_banned
-        if check_pt_inside_mesh(surface_point, banned_regions)
+    if options.check_banned_regions
+        if check_pt_inside_mesh(surface_point, options.banned_region_mesh)
             failure_flag = true;
             return;
         end
