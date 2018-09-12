@@ -1,27 +1,31 @@
 function [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
     world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn] = evaluate_spline(pos_pp, ball_radius, num_pts)
-%PROCESS_SPLINE Given a spline path, evaluate at time steps. 
-% Takes:
-% pos_pp -- piecewise polynomial representing the desired COM path on the
-% ground.
-% ball_radius -- Radius of the manipulated ball.
-% num_pts -- number of points to divide the time interval into and evaluate
-% over.
+% PROCESS_SPLINE Given a spline path, evaluate at time steps, returning all
+% state information about the motion of the ball.
 %
-% Returns:
-% tspan -- time from first to last break in the given pp, divided equally
-% into num_pts.
-% posspan -- ball ground contact loc over time.
-% velspan -- ball COM velocities over time.
-% accelspan -- ball COM accelerations over time.
-% omegaspan -- ball world angular rates over time.
-% quatspan -- ball world orientations over time as quaternions.
-% world_contact_loc_desired_fcn -- desired contact location on the ball
-% (i.e. opposite acceleration vec) relative to the world origin, 
-% parameterized still by angle along the arc.
-% contact_loc_desired_rel_com_fcn -- desired contact location on the ball
-% relative to the COM of the ball, in the world frame of reference. Still
-% parameterized by angle along the contact arc.
+%   Inputs:
+%       `pos_pp` -- piecewise polynomial representing the desired COM path 
+%       on the ground.
+%       `ball_radius` -- Radius of the manipulated ball.
+%       `num_pts` -- number of points to divide the time interval into 
+%       and evaluate over.
+%
+%   Outputs:
+%       `tspan` -- time from first to last break in the given pp, 
+%       divided equally into num_pts.
+%       `posspan` -- ball ground contact loc over time.
+%       `velspan` -- ball COM velocities over time.
+%       `accelspan` -- ball COM accelerations over time.
+%       `omegaspan` -- ball world angular rates over time.
+%       `quatspan` -- ball world orientations over time as quaternions.
+%       `world_contact_loc_desired_fcn` -- desired contact location on the 
+%       ball (i.e. opposite acceleration vec) relative to the world origin,
+%       parameterized still by angle along the arc.
+%       `contact_loc_desired_rel_com_fcn` -- desired contact location on 
+%       the ball relative to the COM of the ball, in the world frame of 
+%       reference. Still parameterized by angle along the contact arc.
+%
+%   See also GET_PATH_PP, PPVAL, NLP_SPLINE.
 %  
 
 validateattributes(pos_pp, {'struct'}, {});

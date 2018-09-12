@@ -1,5 +1,20 @@
 function derived_eqns = do_derivations()
-%% Dumps derived functions in derived_autogen directory.
+% DO_DERIVATIONS Derive various expressions for dynamics and kinematics and
+% save these to MATLAB functions in the derived_autogen directory.
+%
+%   derived_eqns = DO_DERIVATIONS()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `derived_eqns` -- Structure containing function handles for all the
+%       derived expressions.
+%   Output files:
+%       All the contents of derived_autogen.
+%
+%   See also MATLABFUNCTION.
+%
+
+
 syms fax fay faz fn ffx ffy rx ry vx vy ax ay wx wy wz wdx wdy wdz fric_coeff theta real;
 syms g m I R positive;
 % g - gravity

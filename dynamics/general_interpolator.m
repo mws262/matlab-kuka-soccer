@@ -1,9 +1,31 @@
 classdef general_interpolator < handle
-    %% General purpose interpolator.
-    % Data can be added again and again as long as the times are
-    % monotonically increasing. If the data is one-dimensional, then the
-    % first dimension should be time. If it is higher dimensional (e.g.
-    % rotation matrices), then the last dimension should be time.
+    % GENERAL_INTERPOLATOR Expandable data storage container which can return
+    % an interpolated value at requested times.
+    %   Data can be added again and again as long as the times are
+    %   monotonically increasing. If the data is one-dimensional, then the
+    %   first dimension should be time. If it is higher dimensional (e.g.
+    %   rotation matrices), then the last dimension should be time.
+    %
+    %   Methods:
+    %       general_interpolator(data_dimensions) -- Constructor.
+    %       add_to_end_at_time(obj, tspan, dspan) -- Adds more data to this
+    %       interpolator. Must be greater in time than previous data.
+    %       get_at_time(obj, tget) -- Get an interpolated value at a specified
+    %       time.
+    %   Properties:
+    %       `dspan_complete` -- All data being stored. Note that for 2D data
+    %       (like a 3x3 rotation matrix), this data is resized to be stored so
+    %       each row is a single time-element of the data.
+    %       `tspan_complete` -- All time elements being stored. Will correspond
+    %       to all data in `dspan_complete`.
+    %       `data_dimensions` -- Dimension of each time-element of the data
+    %       being stored. This is defined when creating this
+    %       general_interpolator.
+    %
+    %   See also GENERAL_INTERPOLATOR.GENERAL_INTERPOLATOR,
+    %   GENERAL_INTERPOLATOR.ADD_TO_END_AT_TIME,
+    %   GENERAL_INTERPOLATOR.GET_AT_TIME.
+    %
     
     properties
         dspan_complete;
@@ -12,12 +34,42 @@ classdef general_interpolator < handle
     end
     methods
         function obj = general_interpolator(data_dimensions)
+            % GENERAL_INTERPOLATOR Make a new interpolator object.
+            %
+            %   obj = GENERAL_INTERPOLATOR(data_dimensions)
+            %
+            %   Inputs:
+            %       `data_dimensions` -- Size of each element of the data
+            %       to be interpolated/stored.
+            %   Outputs:
+            %       `obj` -- A new general_interpolator object.
+            %
+            
             validateattributes(data_dimensions, {'numeric'}, {'integer', 'positive'});
             obj.data_dimensions = data_dimensions;
         end
         
-        function add_to_end_at_time(obj, tspan, dspan) % Add to the end while preserving the existing times in tspan rather than offsetting.
-
+        function add_to_end_at_time(obj, tspan, dspan)
+            % ADD_TO_END_AT_TIME Add additional time elements to this
+            % interpolator object. This data must come after existing data.
+            %
+            %   ADD_TO_END_AT_TIME(obj, tspan, dspan)
+            %   obj.ADD_TO_END_AT_TIME(tspan, dspan)
+            %
+            %   Inputs:
+            %       `obj` -- Existing general_interpolator object.
+            %       `tspan` -- Additional time elements. Must be
+            %       monotonically increasing and greater than all existing
+            %       times in this object.
+            %       `dspan` -- Additional data elements corresponding to
+            %       `tspan`. If each time-element is a vector, then the
+            %       first dimension is along time. If each element is a
+            %       matrix, then the last dimension should be along time.
+            %           e.g. First time element of rotation matrix
+            %           dspan(:,:,1). First time element of 3D position
+            %           dspan(1,:).
+            %
+            
             validateattributes(tspan, {'single', 'double'}, {'vector', 'increasing', 'real', 'nonnan'});
             validateattributes(dspan, {'single', 'double'}, {'real', 'nonnan'});
             
@@ -49,7 +101,22 @@ classdef general_interpolator < handle
             obj.tspan_complete = [obj.tspan_complete; tspan];
             obj.dspan_complete = [obj.dspan_complete; dspan_resize];
         end
+        
         function dat_at_time = get_at_time(obj, tget)
+            % GET_AT_TIME Get data stored in this object interpolated to a
+            % specified time.
+            %
+            %   dat_at_time = GET_AT_TIME(obj, tget)
+            %   dat_at_time = obj.GET_AT_TIME(tget)
+            %
+            %   Inputs:
+            %       `obj` -- general_interpolator object being queried.
+            %       `tget` -- Time at which to interpolate the data.
+            %   Outputs:
+            %       `dat_at_time` -- Data interpolated to time `tget`. Will
+            %       have dimension defined when creating this
+            %       general_interpolator.
+            %
             
             validateattributes(tget, {'single', 'double'}, {'nonnan', 'scalar', 'real', '<=', obj.tspan_complete(end), '>=', obj.tspan_complete(1)});
             
@@ -62,9 +129,10 @@ classdef general_interpolator < handle
                 dat_at_time = dat_interp;
             end
             
-            validateattributes(dat_at_time, {'single', 'double'}, {'real'});
-            
+            validateattributes(dat_at_time, {'single', 'double'}, {'real'});  
         end
+    end
+    methods (Access = protected)
         % Same as build-in ndims, but can return 1 if there is only 1
         % non-singleton dimension. Will not return less than 1.
         function dims = ndims_with_one(obj, arr)

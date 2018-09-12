@@ -1,24 +1,36 @@
-function mesh_face_picker(varargin)
-%% Lets the user select patch faces by clicking. Face indices are saved after each click.
-addpath ../vis;
+function mesh_face_picker(save_file_name, link_patch)
+% MESH_FACE_PICKER Click a mesh to select faces and save these selections
+% to file. File is saved after every click, so the window can be terminated
+% at any time. Clicked faces are highlighted.
+%
+%   MESH_FACE_PICKER(save_file_name, link_patch)
+%   MESH_FACE_PICKER(save_file_name)
+%
+%   Inputs:
+%       `save_file_name` -- Name of the .MAT file to save selected points
+%       to.
+%       `link_patch` -- (OPTIONAL) Patch to load up for click-selection. If
+%       not specified, then the high-res dummy link mesh is loaded.
+%   Outputs: <none>
+%   Output files:
+%       `save_file_name`.mat -- File with struct named `selections`. Has
+%       fields `points` and `faces`. `points` is n x 3 cartesian positions
+%       of selected click points. `faces` is n x 1 indices of selected
+%       faces.
+%
+%   See also PATCHFACEFCN, GET_MESH_DATA, LOAD_AND_SAVE_IIWA_MERGED, PATCH.
+%
+
 selected_faces = [];
 selected_points = [];
-save_file_name = './picked_faces_tmp.mat';
-geo_data = load('./iiwa_merged_end_effector.mat');
 
 picker_fig = figure;
 picker_fig.Position = [0, 0, 1000, 900];
 ax = axes;
 
-if numel(varargin) > 0
-    link_patch = varargin{1}; % TODO: haven't tested this since some changes.
-else
-    detail_level = 1;
-    faces = geo_data.merged_iiwa(detail_level).faces;
-    vertices = geo_data.merged_iiwa(detail_level).vertices;
-    face_normals = geo_data.merged_iiwa(detail_level).face_normals;
-    vertex_normals = geo_data.merged_iiwa(detail_level).vertex_normals;
-    link_patch = patch('Faces', faces, 'Vertices', vertices, 'FaceNormals', face_normals, 'VertexNormals', vertex_normals);
+if nargin == 1
+    geo_data = get_mesh_data('dummy_manipulator_high_res');
+    link_patch = patch('Faces', geo_data.faces, 'Vertices', geo_data.vertices, 'FaceNormals', geo_data.face_normals, 'VertexNormals', geo_data.vertex_normals);
 end
 
 cdata = repmat([0.8, 0.5, 0.5], [size(link_patch.Faces,1), 1]);
