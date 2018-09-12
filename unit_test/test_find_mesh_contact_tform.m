@@ -1,5 +1,15 @@
 function exceptions = test_find_mesh_contact_tform()
-%TEST_FIND_MESH_CONTACT_TFORM
+% TEST_FIND_MESH_CONTACT_TFORM Unit tests for find_mesh_contact_tform.
+%
+%   exceptions = TEST_FIND_MESH_CONTACT_TFORM()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also FIND_MESH_CONTACT_TFORM, TEST_ALL.
+%
 tolerance = 1e-12;
 
 exceptions = {};

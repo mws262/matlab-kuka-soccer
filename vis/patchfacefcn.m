@@ -1,6 +1,4 @@
 function patchfacefcn(obj,hit,fun,selection,dLim)
-% callback function for patch face selection
-%
 % PATCHFACEFCN(obj,hit,callbackfun,selection)
 %
 % The function can find the index of the face in a patch object which was

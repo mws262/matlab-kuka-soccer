@@ -1,16 +1,29 @@
-% Loads a lot of mesh shit, mostly from OBJ files. Packs it up nicely and
-% saves it in a .mat. OBJ loader is slow, so this loads up much faster.
-% Has merged_iiwa([1,2,3,4]) 1 is full resolution, 2 is half, 3 is 10%, 4
-% is a flat plane :D
-% Also contains banned_regions.
+function load_and_save_iiwa_merged()
+% LOAD_AND_SAVE_IIWA_MERGED Load .OBJ meshes from file, prepare them, and
+% save to a .MAT file for easy access. Each saved mesh will include face
+% and vertex normals.
+% Also does some debug drawing to make sure the loaded meshes are as
+% expected.
+%
+%   LOAD_AND_SAVE_IIWA_MERGED()
+%
+%   Inputs: <none>
+%   Function outputs: <none>
+%   File output:
+%       'iiwa_merged_end_effector.mat' - contains `merged_iiwa` and
+%       `banned_regions`. `merged_iiwa` is a struct array with the dummy
+%       end effector link in 4 levels of difficulty, 1-high, 2-mid, 3-low,
+%       4-a plane (sort of a joke). `banned_regions` is another mesh
+%       structure containing regions we want to prohibit on the robot link.
+%       
+%   See also VALIDATE_MESH_STRUCT, READOBJ, STLREAD, SIMPLE_SHAPE_DATA,
+%   PATCH.
+%
 
-clear all; close all;
-addpath ../geometry;
-addpath ../;
-scale_factor = 100; %cm->m
+scale_factor = 100; % cm -> m, artifact of using Maya earlier.
+
 % Unreduced load of mesh.
-% [merged_faces_full, merged_vertices_full, merged_face_normals_full] = stlread('iiwa_merged_end_effector.stl');
-import_struct = readObj('iiwa_merged_conv_maya.obj');%'iiwa_merged_end_effector_convex_unified.obj'); % Stl has the issue of not storing vertex connectivity. 
+import_struct = readObj('iiwa_merged_conv_maya.obj');% Stl has the issue of not storing vertex connectivity.
 merged_vertices_full = import_struct.v;
 merged_faces_full = import_struct.f.v;
 merged_vertex_normals_full = import_struct.vn./sqrt(import_struct.vn(:,1).^2 + import_struct.vn(:,2).^2 + import_struct.vn(:,3).^2);
@@ -39,7 +52,7 @@ merged_vertex_normals_mid = get_all_normals(merged_faces_mid, merged_vertices_mi
 
 
 % Reduce patch. Low-res
-reducepatch(iiwa_patch,0.2); % MULTIPLICATIVE WITH PREVIOUS REDUCTION.
+reducepatch(iiwa_patch,0.2); % Reduction is effectively multiplicative with previous reductions.
 drawnow;
 merged_faces_low = iiwa_patch.Faces;
 merged_vertices_low = iiwa_patch.Vertices;
@@ -71,7 +84,6 @@ banned_regions = struct('faces', banned_faces1, 'vertices', banned_verts1, 'face
 %% Save all!
 save('iiwa_merged_end_effector.mat', 'merged_iiwa', 'banned_regions');
 
-
 %% Some plotting.
 hold on;
 detail = 3;
@@ -81,9 +93,8 @@ fn = merged_iiwa(detail).face_normals;
 vn = merged_iiwa(detail).vertex_normals;
 
 vert_n = quiver3(verts(:,1), verts(:,2), verts(:,3), vn(:,1), vn(:,2), vn(:,3));
-% vert_n.AutoScale = 'off';
 
 face_centroids = (verts(faces(:,1),:) + verts(faces(:,2),:) + verts(faces(:,3),:)) / 3;
 face_n = quiver3(face_centroids(:,1), face_centroids(:,2), face_centroids(:,3), fn(:,1), fn(:,2), fn(:,3));
-
+end
 

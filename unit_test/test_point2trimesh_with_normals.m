@@ -1,5 +1,15 @@
 function exceptions = test_point2trimesh_with_normals()
-%TEST_POINT2TRIMESH_WITH_NORMALS
+%TEST_POINT2TRIMESH_WITH_NORMALS Unit tests for point2trimesh_with_normals
+%
+%   exceptions = TEST_POINT2TRIMESH_WITH_NORMALS()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also POINT2TRIMESH_WITH_NORMALS, POINT2TRIMESH, TEST_ALL.
+%
 
 tolerance = 1e-10;
 

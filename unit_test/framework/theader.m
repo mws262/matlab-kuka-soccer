@@ -1,5 +1,5 @@
 function theader(message)
-%THEADER Prints a big header for the beginning of a set of unit tests.
+% THEADER Prints a big header for the beginning of a set of unit tests.
 %   
 %   THEADER(message)
 %

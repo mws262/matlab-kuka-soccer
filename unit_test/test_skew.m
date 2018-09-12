@@ -1,5 +1,14 @@
 function test_skew()
-%TEST_SKEW
+%TEST_SKEW Unit tests for skew.
+%
+%   TEST_SKEW()
+%
+%   Inputs: <none>
+%   Outputs: <none>
+%
+%   See also SKEW, CROSS, TEST_ALL.
+%
+
 tolerance = 1e-15;
 
 v1 = [-4.3, 6.8, 12.1]';

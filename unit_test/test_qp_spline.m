@@ -1,5 +1,16 @@
 function exceptions = test_qp_spline()
-%TEST_QP_SPLINE 
+% TEST_QP_SPLINE Unit tests for qp_spline.
+%
+%   exceptions = TEST_QP_SPLINE()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also QP_SPLINE, TEST_ALL.
+%
+
 tolerance = 1e-10;
 
 theader('Testing qp_spline.');

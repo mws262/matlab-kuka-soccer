@@ -1,5 +1,14 @@
 function test_get_rotation_from_vecs()
-%TEST_GET_ROTATION_FROM_VECS 
+% TEST_GET_ROTATION_FROM_VECS Unit tests for get_rotation_from_vecs.
+%
+%   TEST_GET_ROTATION_FROM_VECS()
+%
+%   Inputs: <none>
+%   Outputs: <none>
+%
+%   See also GET_ROTATION_FROM_VECS, TEST_ALL.
+%
+
 tolerance = 1e-12;
 
 theader('Testing get_rotation_from_vecs.');

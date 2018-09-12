@@ -1,6 +1,15 @@
 function test_cmaes()
-%TEST_CMAES Not comprehensive. Just to make sure that the little changes
-%I've made haven't screwed anything up.
+% TEST_CMAES Unit tests for check_pt_inside_mesh. Not comprehensive, just
+% does a quick check on the Rosenbrock function.
+%
+%   TEST_CMAES()
+%
+%   Inputs: <none>
+%   Outputs: <none>
+%
+%   See also CMAES, TEST_ALL.
+%
+
 tolerance = 1e-8;
 
 theader('Testing cmaes.');

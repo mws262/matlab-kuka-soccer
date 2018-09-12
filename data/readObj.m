@@ -1,12 +1,10 @@
 function obj = readObj(fname)
-%
 % obj = readObj(fname)
 %
 % This function parses wavefront object data
 % It reads the mesh vertices, texture coordinates, normal coordinates
 % and face definitions(grouped by number of vertices) in a .obj file 
 % 
-%
 % INPUT: fname - wavefront object file full path
 %
 % OUTPUT: obj.v - mesh vertices
@@ -16,6 +14,8 @@ function obj = readObj(fname)
 %
 % Bernard Abayowa, Tec^Edge
 % 11/8/07
+%   See also STLREAD, GET_MESH_DATA.
+%
 
 % set up field types
 v = []; vt = []; vn = []; f.v = []; f.vt = []; f.vn = [];

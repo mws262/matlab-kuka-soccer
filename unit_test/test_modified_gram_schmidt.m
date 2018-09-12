@@ -1,5 +1,15 @@
 function exceptions = test_modified_gram_schmidt()
-%TEST_MODIFIED_GRAM_SCHMIDT
+% TEST_MODIFIED_GRAM_SCHMIDT Unit tests for modified_gram_schmidt.
+%
+%   exceptions = TEST_MODIFIED_GRAM_SCHMIDT()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also MODIFIED_GRAM_SCHMIDT, TEST_ALL.
+%
 tolerance = 1e-12;
 
 theader('Testing modified_gram_schmidt.');

@@ -1,5 +1,17 @@
 function exceptions = test_spline_concat_in_dimension()
-%TEST_SPLINE_CONCAT_IN_DIMENSION
+%TEST_SPLINE_CONCAT_IN_DIMENSION Unit tests for SPLINE_CONCAT_IN_DIMENSION.
+%
+%   exceptions = TEST_SPLINE_CONCAT_IN_DIMENSION()
+%
+%   Inputs: <none>
+%   Outputs: 
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also SPLINE_CONCAT_IN_DIMENSION, SPLINE, CSAPE, PPMAK, TEST_ALL.
+%
+
+
 tolerance = 1e-15;
 
 theader('Testing spline_concat_in_dimension.');

@@ -1,5 +1,16 @@
 function exceptions = test_general_interpolator()
-%TEST_GENERAL_INTERPOLATOR Test the general interpolator function.
+% TEST_GENERAL_INTERPOLATOR Unit tests for general_interpolator.
+%
+%   exceptions = TEST_GENERAL_INTERPOLATOR()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also GENERAL_INTERPOLATOR, TEST_ALL.
+%
+
 tolerance = 1e-15;
 
 theader('Testing general_interpolator.');

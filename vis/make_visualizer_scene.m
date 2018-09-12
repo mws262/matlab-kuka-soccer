@@ -1,4 +1,19 @@
 function scene_fig = make_visualizer_scene()
+% MAKE_VISUALIZER_SCENE Construct the a blank world scene containing the
+% ground, sky, and basic keyboard/mouse interaction for camera motion.
+%
+%   scene_fig = MAKE_VISUALIZER_SCENE()
+%
+%   Inputs: <none>
+%
+%   Outputs:
+%       scene_fig -- Figure containing all the graphics objects.
+%
+%   See also MAKE_BALL, MAKE_CYLINDER, MOUSE_DOWN_CALLBACK,
+%   MOUSE_UP_CALLBACK, MOUSE_MOTION_CALLBACK, KEY_PRESS_CALLBACK,
+%   KEY_RELEASE_CALLBACK.
+%
+
 scene_fig = figure(1);
 scene_fig.NumberTitle = 'off';
 scene_fig.Name = 'Matt''s not-a-Drake-Visualizer';
@@ -42,9 +57,7 @@ scene_fig.WindowButtonDownFcn = @mouse_down_callback;
 scene_fig.WindowButtonUpFcn = @mouse_up_callback;
 camva(40);
 light1 = light();
-light1.Position = [10,10,40];%ax.CameraPosition;
+light1.Position = [10,10,40];
 light1.Style = 'infinite';
-
-% camlight HEADLIGHT;
 
 return

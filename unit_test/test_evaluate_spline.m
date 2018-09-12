@@ -1,4 +1,15 @@
 function exceptions = test_evaluate_spline()
+% TEST_EVALUATE_SPLINE Unit tests for evaluate_spline.
+%
+%   exceptions = TEST_EVALUATE_SPLINE()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also EVALUATE_SPLINE, TEST_ALL.
+%
 tolerance = 1e-15;
 
 theader('Testing evaluate_spline.');

@@ -1,8 +1,19 @@
-function [twentygon, sixgon, cube] = simple_shape_data()
-% Just some sample face and vertex data.
-% platonic_solid by Kevin Moerman: https://www.mathworks.com/matlabcentral/fileexchange/28213-platonic-solid
-% helped me generate these numbers
-% Note -- I had to fix normal directions myself. Don't use this tool again.
+function [twentyhedron, sixhedron, cube] = simple_shape_data()
+% SIMPLE_SHAPE_DATA Makes mesh data for several simple convex polyhedra.
+%
+%   [twentygon, sixgon, cube] = SIMPLE_SHAPE_DATA()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `twentygon` -- Icosahedron mesh data. Structure contains faces,
+%       vertices, face_normals, and vertex_normals.
+%       `sixgon` -- Hexahedron mesh data. Structure contains faces,
+%       vertices, face_normals, and vertex_normals.
+%       `cube` -- Cube mesh data. Structure contains faces,
+%       vertices, face_normals, and vertex_normals.
+%
+%   See also: GET_MESH_DATA, GET_ALL_NORMALS, PATCH.
+%
 
 %% Icosahedron
 scale_factor = 0.1;
@@ -40,13 +51,12 @@ F1 = [     9     4     1
      6     7     4
      6     4     9];
  [VN1, FN1] = get_all_normals(F1, V1);
- twentygon.vertices = V1;
- twentygon.faces = F1;
- twentygon.vertex_normals = VN1;
- twentygon.face_normals = FN1;
+ twentyhedron.vertices = V1;
+ twentyhedron.faces = F1;
+ twentyhedron.vertex_normals = VN1;
+ twentyhedron.face_normals = FN1;
  
  %% Hexahedron
- 
  V2 = [   -0.7071   -0.7071         0
     0.7071   -0.7071         0
     0.7071    0.7071         0
@@ -63,10 +73,10 @@ F2 = [      5     2     1
      3     4     6
      4     1     6];
  [VN2, FN2] = get_all_normals(F2, V2);
- sixgon.vertices = V2;
- sixgon.faces = F2;
- sixgon.vertex_normals = VN2;
- sixgon.face_normals = FN2;
+ sixhedron.vertices = V2;
+ sixhedron.faces = F2;
+ sixhedron.vertex_normals = VN2;
+ sixhedron.face_normals = FN2;
  
  %% Cube
  V3 = [ ...

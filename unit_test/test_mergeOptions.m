@@ -1,4 +1,15 @@
 function exceptions = test_mergeOptions()
+% TEST_MERGEOPTIONS Unit tests for mergeOptions.
+%
+%   exceptions = TEST_MERGEOPTIONS()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also MERGEOPTIONS, TEST_ALL.
+%
 theader('Testing mergeOptions.');
 
 default_struct.a = 4;

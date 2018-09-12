@@ -1,4 +1,14 @@
 function test_make_ball()
+% TEST_MAKE_BALL Unit tests for make_ball.
+%
+%   TEST_MAKE_BALL()
+%
+%   Inputs: <none>
+%   Outputs: <none>
+%
+%   See also MAKE_BALL, TEST_ALL.
+%
+
 tolerance = 1e-15;
 theader('Testing make_ball.');
 

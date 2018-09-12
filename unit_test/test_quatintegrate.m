@@ -1,5 +1,16 @@
 function exceptions = test_quatintegrate()
-%TEST_QUATINTEGRATE
+% TEST_QUATINTEGRATE Unit tests for quatintegrate.
+%
+%   exceptions = TEST_CHECK_PT_INSIDE_MESH()
+%
+%   Inputs: <none>
+%   Outputs: 
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also QUATINTEGRATE, TEST_ALL.
+%
+
 high_tolerance = 1e-12; % For stuff which should be THE SAME minus a little floating point error.
 low_tolerance = 1e-3; % For integration where errors are expected to be larger.
 

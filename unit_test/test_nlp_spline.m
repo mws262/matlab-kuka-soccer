@@ -1,8 +1,18 @@
 function exceptions = test_nlp_spline()
-%TEST_NLP_SPLINE
+% TEST_NLP_SPLINE Unit tests for nlp_spline
 % These tests should be expanded to all features of nlp_spline. I have
 % relatively high confidence in that code, so I'm prioritizing others right
 % now.
+%
+%   exceptions = TEST_NLP_SPLINE()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also NLP_SPLINE, TEST_ALL.
+%
 
 tolerance = 1e-10;
 

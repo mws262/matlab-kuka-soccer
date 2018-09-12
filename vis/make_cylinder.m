@@ -1,14 +1,28 @@
 function [cylinder_side_faces, cylinder_lid_faces, cylinder_axis_rotation] = ...
     make_cylinder( bottom_face_location, top_face_location, radius, number_of_faces, face_color )
-% MAKE_CYLINDER Draw a faceted cylinder using patch objects.
+% MAKE_CYLINDER Draw a faceted cylinder using patch objects. It is oriented
+% along the axis between the specified points.
 %
 %   MAKE_CYLINDER( bottom_face_location, top_face_location, radius, number_of_faces )
 %   MAKE_CYLINDER( bottom_face_location, top_face_location, radius, number_of_faces, face_color )
 %
 %   Inputs:
-
-
-ERROROROROROR Finish this.
+%       `bottom_face_location` -- Center point of bottom lid face.
+%       `top_face_loction` -- Center point of top lid face.
+%       `radius` -- Cylinder radius.
+%       `number_of_faces` -- Number of faces along the sides of the
+%       cylinder.
+%       `face_color` -- (OPTIONAL) RGB color of the cylinder.
+%
+%   Outputs:
+%       `cylinder_side_faces` -- Patch object for the side faces of the
+%       cylinder.
+%       `cylinder_lid_faces` -- Patch object for the top and bottom faces
+%       of the cylinder.
+%       `cylinder_axis_rotation` -- Rotation mapping the vertical axis onto
+%       the axis of the cylinder.
+%
+%   See also CYLINDER, MAKE_BALL.
 %
 
 

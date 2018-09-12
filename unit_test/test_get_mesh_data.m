@@ -1,5 +1,15 @@
 function exceptions = test_get_mesh_data()
-%TEST_GET_MESH_DATA
+% TEST_GET_MESH_DATA Unit tests for get_mesh_data.
+%
+%   exceptions = TEST_GET_MESH_DATA()
+%
+%   Inputs: <none>
+%   Outputs:
+%       `exceptions` -- Cell array of exceptions generated while running
+%       sub-tests.
+%
+%   See also GET_MESH_DATA, TEST_ALL.
+%
 theader('Testing get_mesh_data.');
 
 exceptions = {};
