@@ -8,7 +8,8 @@ function mesh_struct = get_mesh_data(mesh_name)
 %           'dummy_manipulator_high_res' - edited foot link with convex end.
 %           'dummy_manipulator_mid_res' - 50% reduction
 %           'dummy_manipulator_low_res' - 90% reduction
-%           'horiz_plane' - horizontal plane centered at 0,0,0.
+%           'vert_plane' - vertical plane centered at 0,0,0. Normals face
+%           in the +y direction.
 %           'twentyhedron' - twenty-sided platonic polyhedron.
 %           'sixhedron' - six-sided platonic polyhedron.
 %           'cube' - centered around the origin.
@@ -36,7 +37,7 @@ switch mesh_name
         geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.merged_iiwa(3);
         return;
-    case 'horiz_plane'
+    case 'vert_plane'
         geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.merged_iiwa(4);
         return;
