@@ -10,6 +10,9 @@ function exceptions = test_find_mesh_contact_tform()
 %
 %   See also FIND_MESH_CONTACT_TFORM, TEST_ALL.
 %
+
+theader('Testing find_mesh_contact_tform.');
+
 tolerance = 1e-12;
 
 exceptions = {};
@@ -25,8 +28,31 @@ exceptions{end+1} = do_test(@foot_mesh_test);
         target_location = [0.1, -1, 0.5];
         twist_ang = 0;
         
-        % Returns a 4x4.
-        [total_tform, current_pt, current_normal] = find_mesh_contact_tform(pt_near, target_normal, target_location, twist_ang, cube_data);
+        
+        % No destination location.
+        [total_tform, current_pt, current_normal] = find_mesh_contact_tform(cube_data, pt_near, target_normal, twist_ang);
+        
+        % Validate the rotation part of the tform.
+        rotation = tform2rotm(total_tform);
+        validateattributes(rotation, {'single', 'double'}, {'real', 'size', [3, 3]});
+        assert_near(det(rotation), 1, tolerance, 'Invalid rotation returned.');
+        assert_near(dot(rotation(:,1), rotation(:,2)), 0, tolerance, 'Invalid rotation returned.');
+        assert_near(dot(rotation(:,2), rotation(:,3)), 0, tolerance, 'Invalid rotation returned.');
+        
+        % Make sure it returned the closest point on mesh.
+        assert(min(sum((cube_data.vertices - pt_near).*(cube_data.vertices - pt_near),2)) >= sum((pt_near - current_pt).*(pt_near - current_pt),2), 'Nearest point returned was not as close as one or more of the vertices.');
+        
+        % Make sure that the rotation matches the normals correctly.
+        assert_near(target_normal', -rotation*current_normal', tolerance, 'Returned rotation does not transform the original normal vector onto the -target.');
+        
+        % Make sure that the transformation maps the original point to the
+        % target.
+        tformed_center = total_tform*[current_pt, 1]';
+        tformed_center = tformed_center(1:3); % Column.
+        assert_near(tformed_center', current_pt, tolerance, 'Transformed point does not match target destination.');
+        
+        % With a destination location.
+        [total_tform, current_pt, current_normal] = find_mesh_contact_tform(cube_data, pt_near, target_normal, twist_ang, target_location);
         
         % Validate the rotation part of the tform.
         rotation = tform2rotm(total_tform);
@@ -46,8 +72,7 @@ exceptions{end+1} = do_test(@foot_mesh_test);
         tformed_center = total_tform*[current_pt, 1]';
         tformed_center = tformed_center(1:3); % Column.
         assert_near(tformed_center, target_location', tolerance, 'Transformed point does not match target destination.');
-        
-        
+
         % See how a nearby point is affected.
         test_pt = [-0, -0.05, 1];
         [ ~, near_pt, near_normal ] = point2trimesh_with_normals( test_pt, cube_data );
@@ -58,7 +83,7 @@ exceptions{end+1} = do_test(@foot_mesh_test);
         angs = linspace(0, 2*pi, 20);
         tformed_pts_rel_center = zeros(length(angs),3);
         for i = 1:length(angs)
-            [tform, alt_surface_pt, ~] = find_mesh_contact_tform(pt_near, target_normal, target_location, angs(i), cube_data);
+            [tform, alt_surface_pt, ~] = find_mesh_contact_tform(cube_data, pt_near, target_normal, angs(i), target_location);
             % Nearby point after transformation.
             tform_near = tform*[near_pt,1]';
             tform_near = tform_near(1:3);
@@ -78,7 +103,7 @@ exceptions{end+1} = do_test(@foot_mesh_test);
         end
         
         angs_between_tformed = acos(dot(tformed_pts_rel_center(2:end,:)./sqrt(sum(tformed_pts_rel_center(2:end,:).*tformed_pts_rel_center(2:end,:),2)), tformed_pts_rel_center(1:end - 1,:)./sqrt(sum(tformed_pts_rel_center(1:end - 1,:).*tformed_pts_rel_center(1:end - 1,:),2)),2));
-        assert_near(angs_between_tformed, diff(angs), tolerance, 'Rotation about normal should be the same before and after transformation.');
+        assert_near(angs_between_tformed, diff(angs)', tolerance, 'Rotation about normal should be the same before and after transformation.');
         
     end
 
@@ -93,8 +118,30 @@ exceptions{end+1} = do_test(@foot_mesh_test);
         target_location = [0.1, 0.15, -0.05];
         twist_ang = 0;
         
-        % Returns a 4x4.
-        [total_tform, current_pt, current_normal] = find_mesh_contact_tform(pt_near, target_normal, target_location, twist_ang, foot_data);
+        % No target location.
+        [total_tform, current_pt, current_normal] = find_mesh_contact_tform(foot_data, pt_near, target_normal, twist_ang);
+        
+        % Validate the rotation part of the tform.
+        rotation = tform2rotm(total_tform);
+        validateattributes(rotation, {'single', 'double'}, {'real', 'size', [3, 3]});
+        assert_near(det(rotation), 1, tolerance, 'Invalid rotation returned.');
+        assert_near(dot(rotation(:,1), rotation(:,2)), 0, tolerance, 'Invalid rotation returned.');
+        assert_near(dot(rotation(:,2), rotation(:,3)), 0, tolerance, 'Invalid rotation returned.');
+        
+        % Make sure it returned the closest point on mesh.
+        assert(min(sum((foot_data.vertices - pt_near).*(foot_data.vertices - pt_near),2)) >= sum((pt_near - current_pt).*(pt_near - current_pt),2), 'Nearest point returned was not as close as one or more of the vertices.');
+        
+        % Make sure that the rotation matches the normals correctly.
+        assert_near(target_normal', -rotation*current_normal', tolerance, 'Returned rotation does not transform the original normal vector onto the -target.');
+        
+        % Make sure that the transformation maps the original point to the
+        % target.
+        tformed_center = total_tform*[current_pt, 1]';
+        tformed_center = tformed_center(1:3); % Column.
+        assert_near(tformed_center', current_pt, tolerance, 'Transformed point does not match target destination.');
+        
+        % With target location.
+        [total_tform, current_pt, current_normal] = find_mesh_contact_tform(foot_data, pt_near, target_normal, twist_ang, target_location);
         
         % Validate the rotation part of the tform.
         rotation = tform2rotm(total_tform);
@@ -126,7 +173,7 @@ exceptions{end+1} = do_test(@foot_mesh_test);
         angs = linspace(0, 2*pi, 20);
         tformed_pts_rel_center = zeros(length(angs),3);
         for i = 1:length(angs)
-            [tform, alt_surface_pt, ~] = find_mesh_contact_tform(pt_near, target_normal, target_location, angs(i), foot_data);
+            [tform, alt_surface_pt, ~] = find_mesh_contact_tform(foot_data, pt_near, target_normal, angs(i), target_location);
             % Nearby point after transformation.
             tform_near = tform*[near_pt,1]';
             tform_near = tform_near(1:3);
@@ -146,7 +193,7 @@ exceptions{end+1} = do_test(@foot_mesh_test);
         end
         
         angs_between_tformed = acos(dot(tformed_pts_rel_center(2:end,:)./sqrt(sum(tformed_pts_rel_center(2:end,:).*tformed_pts_rel_center(2:end,:),2)), tformed_pts_rel_center(1:end - 1,:)./sqrt(sum(tformed_pts_rel_center(1:end - 1,:).*tformed_pts_rel_center(1:end - 1,:),2)),2));
-        assert_near(angs_between_tformed, diff(angs), tolerance, 'Rotation about normal should be the same before and after transformation.');
+        assert_near(angs_between_tformed, diff(angs)', tolerance, 'Rotation about normal should be the same before and after transformation.');
         
     end
 end

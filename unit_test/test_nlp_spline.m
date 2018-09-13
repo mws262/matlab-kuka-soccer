@@ -70,9 +70,9 @@ exceptions{end+1} = do_test(@end_conditions_met);
         pos = nlp_zero;
         vel = fnder(pos, 1);
         accel = fnder(vel, 1);
-        assert_near(ppval(vel, vel.breaks(1)), 0, tolerance, 'Start vel does not match zero.');
+        assert_near(ppval(vel, vel.breaks(1)), [0; 0; 0], tolerance, 'Start vel does not match zero.');
         %assert_near(ppval(accel, accel.breaks(1)), 0, tolerance, 'Start accel does not match zero.');
-        assert_near(ppval(vel, vel.breaks(end)), 0, tolerance, 'End vel does not match zero.');
+        assert_near(ppval(vel, vel.breaks(end)), [0; 0; 0], tolerance, 'End vel does not match zero.');
         %assert_near(ppval(accel, accel.breaks(end)), 0, tolerance, 'End accel does not match zero.');
     end
 end

@@ -4,7 +4,10 @@ function [complete_transform, untransformed_surface_point, untransformed_surface
 % triangle mesh tangent to some place.
 %
 % [total_tform, untformed_surface_pt, untformed_surface_normal] = FIND_MESH_CONTACT_TFORM(point_near_mesh, destination_normal, ... 
-%    normal_twist_angle, mesh_data, destination_location)
+%    twist_angle_about_normal, mesh_data, destination_location)
+%
+% [total_tform, untformed_surface_pt, untformed_surface_normal] = FIND_MESH_CONTACT_TFORM(point_near_mesh, destination_normal, ... 
+%    twist_angle_about_normal, mesh_data)
 %
 %   Inputs:
 %       `mesh_data` -- Structure with faces, vertices, face_normals, and
@@ -40,8 +43,7 @@ function [complete_transform, untransformed_surface_point, untransformed_surface
 
 validateattributes(point_near_mesh, {'numeric'}, {'vector', 'numel', 3, 'real'});
 validateattributes(destination_normal, {'numeric'}, {'vector', 'numel', 3, 'real'});
-validateattributes(destination_location, {'numeric'}, {'vector', 'numel', 3, 'real'});
-validateattributes(normal_twist_angle, {'numeric'}, {'scalar', 'real'});
+validateattributes(twist_angle_about_normal, {'numeric'}, {'scalar', 'real'});
 validateattributes(mesh_data, {'struct'}, {});
 
 % Projection to untransformed mesh.
@@ -52,6 +54,7 @@ twist_about_untformed_normal = rotm2tform(axang2rotm([untransformed_surface_norm
 untformed_surface_normal_to_target = rotm2tform(get_rotation_from_vecs(untransformed_surface_normal, -destination_normal)); % Rotation taking the original normal vector to the opposite of the target vector.
 
 if nargin == 5
+    validateattributes(destination_location, {'numeric'}, {'vector', 'numel', 3, 'real'});
     origin_to_destination = trvec2tform(destination_location); % Translate a point at the origin to the speficied destination.
 else
     origin_to_destination = trvec2tform(untransformed_surface_point); % Translate directly back if no destination is specified.
