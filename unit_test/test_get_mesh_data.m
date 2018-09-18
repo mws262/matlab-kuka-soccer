@@ -16,7 +16,7 @@ exceptions = {};
 exceptions{end+1} = do_test(@dummy_manipulator_high_res);
 exceptions{end+1} = do_test(@dummy_manipulator_mid_res);
 exceptions{end+1} = do_test(@dummy_manipulator_low_res);
-exceptions{end+1} = do_test(@horiz_plane);
+exceptions{end+1} = do_test(@vert_plane);
 exceptions{end+1} = do_test(@twentyhedron);
 exceptions{end+1} = do_test(@sixhedron);
 exceptions{end+1} = do_test(@cube);
@@ -40,9 +40,9 @@ exceptions{end+1} = do_test(@manipulator_banned1);
         validate_mesh_struct(mesh_data);
         assert(get_signed_mesh_volume(mesh_data) > 0);
     end
-    function horiz_plane()
-        tname('horiz_plane');
-        mesh_data = get_mesh_data('horiz_plane');
+    function vert_plane()
+        tname('vert_plane');
+        mesh_data = get_mesh_data('vert_plane');
         validate_mesh_struct(mesh_data);
     end
     function twentyhedron()

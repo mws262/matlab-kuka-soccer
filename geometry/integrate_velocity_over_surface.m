@@ -71,9 +71,9 @@ output.mesh_surface_normals = zeros(total_steps,3);
 output.mesh_rotations = zeros(3,3,total_steps);
 
 % Add initial points.
-% output.mesh_surface_path(1,:) = current_pt;
-% output.mesh_surface_normals(1,:) = current_normal;
-% output.mesh_rotations(:,:,1) = rotation;
+output.mesh_surface_path(1,:) = current_pt;
+output.mesh_surface_normals(1,:) = current_normal;
+output.mesh_rotations(:,:,1) = rotation;
 
 % Integration loop.
 for i = 1:total_steps - 1
@@ -121,14 +121,14 @@ for i = 1:total_steps - 1
     current_normal = new_normal_vec;
     rotation = modified_gram_schmidt(rotation); % Fix the rotation matrix.
     
-    output.mesh_surface_path(i,:) = current_pt;
-    output.mesh_surface_normals(i,:) = current_normal;
-    output.mesh_rotations(:,:,i) = rotation;
+    output.mesh_surface_path(i+1,:) = current_pt;
+    output.mesh_surface_normals(i+1,:) = current_normal;
+    output.mesh_rotations(:,:,i+1) = rotation;
 end
 % TODO FIX THIS PROPERLY. Just replicating the next to last value so the
 % dimensions are nicer.
-output.mesh_surface_path(end,:) = output.mesh_surface_path(end - 1,:);
-output.mesh_surface_normals(end,:) = output.mesh_surface_normals(end - 1, :);
-output.mesh_rotations(:,:,end) = output.mesh_rotations(:,:,end - 1);
+% output.mesh_surface_path(end,:) = output.mesh_surface_path(end - 1,:);
+% output.mesh_surface_normals(end,:) = output.mesh_surface_normals(end - 1, :);
+% output.mesh_rotations(:,:,end) = output.mesh_rotations(:,:,end - 1);
 
 end
