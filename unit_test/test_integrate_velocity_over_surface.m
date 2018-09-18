@@ -17,7 +17,7 @@ tolerance = 1e-8;
 theader('Testing integrate_velocity_over_surface.');
 
 exceptions = {};
-exceptions{end+1} = do_test(@line_on_plane);
+exceptions{end+1} = do_test(@line_on_sphere);
 
     function line_on_plane()
         tname('Linear velocity on planes');
@@ -100,11 +100,26 @@ exceptions{end+1} = do_test(@line_on_plane);
 
 
     function line_on_sphere()
-        radius = 1;
         tname('Linear velocity on spheres');
-        [sphere_x,sphere_y,sphere_z] = sphere(25);
-        ball_dat = surf2patch(radius * sphere_x, radius * sphere_y, radius * sphere_z, 100*radius * sphere_z);
-
+        
+        sph = get_mesh_data('geodesic_sphere');
+        prob = integrate_velocity_over_surface('problem');
+        opts = integrate_velocity_over_surface('options');
+                prob.time_vector = linspace(0, 12*pi, 100)';
+        prob.velocity_vector = ones(100,3) .* [-1, 0, -1]/norm([-1, 0, -1]);
+        prob.initial_surface_point = [-1, 0, -1];
+        prob.normals_to_match =  [0 0 1];
+        prob.orientations_about_normal = 0;
+        prob.mesh_data = sph;
+        
+        output = integrate_velocity_over_surface(prob, opts);
+        close all;
+        figure;
+        patch('Faces', sph.faces, 'Vertices', sph.vertices, 'FaceColor', [1,0.5, 0.5], 'EdgeAlpha', 0.5);
+        hold on;
+        draw_all_normals(sph, 0.1);
+        path = output.mesh_surface_path;
+        plot3(path(:,1), path(:,2), path(:,3), 'LineWidth', 3);
         
     end
 end

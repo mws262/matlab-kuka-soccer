@@ -15,6 +15,8 @@ function mesh_struct = get_mesh_data(mesh_name)
 %           'cube' - centered around the origin.
 %           'manipulator_banned1' - banned region near the wrist of the 
 %           robot end link.
+%           'geodesic_sphere' - many-faceted discretized sphere with 
+%           equilateral triangle faces. Unit radius.
 %       `mesh_struct` -- Loaded mesh data. Contains faces, vertices,
 %       face_normals, vertex_normals.
 %
@@ -56,6 +58,10 @@ switch mesh_name
     case 'manipulator_banned1'
         geo_data = load('iiwa_merged_end_effector.mat');
         mesh_struct = geo_data.banned_regions;
+        return;
+    case 'geodesic_sphere'
+        geo_data = load('geodesic_sphere.mat');
+        mesh_struct = geo_data.sph;
         return;
     otherwise
         error(['Unknown mesh name. Cannot load: ', mesh_name]);

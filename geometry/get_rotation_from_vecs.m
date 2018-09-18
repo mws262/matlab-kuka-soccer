@@ -22,6 +22,6 @@ end
 
 rotation = eye(3) + sk + sk^2*(1 - c)/s^2;
 
-validateattributes(rotation, {'numeric'}, {'nonnan', '>=', -1, '<=', 1});
+validateattributes(rotation, {'numeric'}, {'nonnan', '>=', -1 - 1e-8, '<=', 1 + 1e-8});
 
 end
