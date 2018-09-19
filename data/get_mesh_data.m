@@ -60,8 +60,14 @@ switch mesh_name
         mesh_struct = geo_data.banned_regions;
         return;
     case 'geodesic_sphere'
-        geo_data = load('geodesic_sphere.mat');
-        mesh_struct = geo_data.sph;
+        sph_struct = readObj('sphere.obj'); % Load a basic horizontal plane for debugging.
+        sph_verts = sph_struct.v;
+        sph_faces = sph_struct.f.v;
+        [sph_vn, sph_fn] = get_all_normals(sph_faces, sph_verts);
+        mesh_struct.faces = sph_faces;
+        mesh_struct.vertices = sph_verts;
+        mesh_struct.face_normals = sph_fn;
+        mesh_struct.vertex_normals = sph_vn;
         return;
     otherwise
         error(['Unknown mesh name. Cannot load: ', mesh_name]);

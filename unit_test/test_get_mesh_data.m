@@ -21,6 +21,7 @@ exceptions{end+1} = do_test(@twentyhedron);
 exceptions{end+1} = do_test(@sixhedron);
 exceptions{end+1} = do_test(@cube);
 exceptions{end+1} = do_test(@manipulator_banned1);
+exceptions{end+1} = do_test(@geodesic_sphere);
 
     function dummy_manipulator_high_res()
         tname('dummy_manipulator_high_res');
@@ -66,6 +67,12 @@ exceptions{end+1} = do_test(@manipulator_banned1);
     function manipulator_banned1()
         tname('manipulator_banned1');
         mesh_data = get_mesh_data('manipulator_banned1');
+        validate_mesh_struct(mesh_data);
+        assert(get_signed_mesh_volume(mesh_data) > 0);
+    end
+    function geodesic_sphere()
+        tname('geodesic_sphere');
+        mesh_data = get_mesh_data('geodesic_sphere');
         validate_mesh_struct(mesh_data);
         assert(get_signed_mesh_volume(mesh_data) > 0);
     end

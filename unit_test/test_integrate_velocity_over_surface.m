@@ -105,21 +105,28 @@ exceptions{end+1} = do_test(@line_on_sphere);
         sph = get_mesh_data('geodesic_sphere');
         prob = integrate_velocity_over_surface('problem');
         opts = integrate_velocity_over_surface('options');
-                prob.time_vector = linspace(0, 12*pi, 100)';
-        prob.velocity_vector = ones(100,3) .* [-1, 0, -1]/norm([-1, 0, -1]);
-        prob.initial_surface_point = [-1, 0, -1];
-        prob.normals_to_match =  [0 0 1];
+                prob.time_vector = linspace(0, 6*pi, 1000)';
+        prob.velocity_vector = [sin(prob.time_vector), zeros(1000,1), ones(1000,1)];
+%         prob.velocity_vector = prob.velocity_vector./sqrt(sum(prob.velocity_vector.*prob.velocity_vector,2));
+        
+        prob.initial_surface_point = [-0.8, -1, 0.2];
+        prob.normals_to_match =  [1,0,0];%prob.velocity_vector(1,:);
         prob.orientations_about_normal = 0;
         prob.mesh_data = sph;
         
         output = integrate_velocity_over_surface(prob, opts);
         close all;
         figure;
-        patch('Faces', sph.faces, 'Vertices', sph.vertices, 'FaceColor', [1,0.5, 0.5], 'EdgeAlpha', 0.5);
+        p = patch('Faces', sph.faces, 'Vertices', sph.vertices, 'FaceColor', [1,0.5, 0.5], 'EdgeAlpha', 0.5);
+        p.FaceAlpha = 0.5;
         hold on;
-        draw_all_normals(sph, 0.1);
+%         draw_all_normals(sph, 0.1);
         path = output.mesh_surface_path;
-        plot3(path(:,1), path(:,2), path(:,3), 'LineWidth', 3);
+        plot3(path(:,1), path(:,2), path(:,3), 'LineWidth', 5);
+        axis equal;
+        
+        d = diff(path);
+        dist = sqrt(sum(d.*d,2))
         
     end
 end

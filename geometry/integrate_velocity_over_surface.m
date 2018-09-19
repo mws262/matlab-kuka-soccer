@@ -60,9 +60,10 @@ end
 output.failure_flag = false; % No failure unless otherwise detected.
 
 %% Setup the problem
-[tform, current_pt, current_normal] = find_mesh_contact_tform(problem.mesh_data, problem.initial_surface_point, problem.normals_to_match(1,:), problem.orientations_about_normal);
+[tform, current_pt, current_normal] = find_mesh_contact_tform(problem.mesh_data, problem.initial_surface_point, ...
+    problem.normals_to_match(1,:), problem.orientations_about_normal);
 
-rotation = tform2rotm(tform);
+rotation = eye(3);%tform2rotm(tform);
 
 % Prepare output value arrays.
 total_steps = length(problem.time_vector);
