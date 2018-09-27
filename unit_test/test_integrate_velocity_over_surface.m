@@ -102,31 +102,63 @@ exceptions{end+1} = do_test(@line_on_sphere);
     function line_on_sphere()
         tname('Linear velocity on spheres');
         
-        sph = get_mesh_data('geodesic_sphere');
-        prob = integrate_velocity_over_surface('problem');
-        opts = integrate_velocity_over_surface('options');
-                prob.time_vector = linspace(0, 6*pi, 1000)';
-        prob.velocity_vector = [sin(prob.time_vector), zeros(1000,1), ones(1000,1)];
-%         prob.velocity_vector = prob.velocity_vector./sqrt(sum(prob.velocity_vector.*prob.velocity_vector,2));
+%         sph = get_mesh_data('geodesic_sphere');
+%         prob = integrate_velocity_over_surface('problem');
+%         opts = integrate_velocity_over_surface('options');
+%                 prob.time_vector = linspace(0, 6*pi, 1000)';
+%         prob.velocity_vector = [sin(prob.time_vector), zeros(1000,1), ones(1000,1)];
+% %         prob.velocity_vector = prob.velocity_vector./sqrt(sum(prob.velocity_vector.*prob.velocity_vector,2));
+%         
+%         prob.initial_surface_point = [-0.8, -1, 0.2];
+%         prob.normals_to_match =  [1,0,0];%prob.velocity_vector(1,:);
+%         prob.orientations_about_normal = 0;
+%         prob.mesh_data = sph;
+%         
+%         output = integrate_velocity_over_surface(prob, opts);
+%         close all;
+%         figure;
+%         p = patch('Faces', sph.faces, 'Vertices', sph.vertices, 'FaceColor', [1,0.5, 0.5], 'EdgeAlpha', 0.5);
+%         p.FaceAlpha = 0.5;
+%         hold on;
+% %         draw_all_normals(sph, 0.1);
+%         path = output.mesh_surface_path;
+%         plot3(path(:,1), path(:,2), path(:,3), 'LineWidth', 5);
+%         axis equal;
+%         
+%         d = diff(path);
+%         dist = sqrt(sum(d.*d,2))
+
+        tspan = linspace(0,5,500)';
+        vspan = [ones(length(tspan),1), 0.3*ones(length(tspan),1), zeros(length(tspan),1)];  
+        init = [1,0,0];
         
-        prob.initial_surface_point = [-0.8, -1, 0.2];
-        prob.normals_to_match =  [1,0,0];%prob.velocity_vector(1,:);
-        prob.orientations_about_normal = 0;
-        prob.mesh_data = sph;
+        [x, y, z] = spherical_coord_integrate(tspan, vspan, init);
+    end
+
+    function [x, y, z] = spherical_coord_integrate(tspan, vspan, init_pos)
+        radius = 1;
+        th = atan2(init_pos(2), init_pos(1));
+        phi = acos(init_pos(3)/radius);
         
-        output = integrate_velocity_over_surface(prob, opts);
-        close all;
-        figure;
-        p = patch('Faces', sph.faces, 'Vertices', sph.vertices, 'FaceColor', [1,0.5, 0.5], 'EdgeAlpha', 0.5);
-        p.FaceAlpha = 0.5;
-        hold on;
-%         draw_all_normals(sph, 0.1);
-        path = output.mesh_surface_path;
-        plot3(path(:,1), path(:,2), path(:,3), 'LineWidth', 5);
-        axis equal;
-        
-        d = diff(path);
-        dist = sqrt(sum(d.*d,2))
+        vx = vspan(:,1);
+        vy = vspan(:,2);
+        x = zeros(length(tspan),1);
+        y = zeros(length(tspan),1);
+        z = zeros(length(tspan),1);
+        x(1) = init_pos(1);
+        y(1) = init_pos(2);
+        z(1) = init_pos(3);
+
+        for i = 1:size(vx,1)-1
+            thdot = vx(i)/(radius * sin(phi));
+            phidot = vy(i)/radius;
+            th = th + thdot*(tspan(i+1) - tspan(i));
+            phi = phi + phidot*(tspan(i+1) - tspan(i));
+            
+            x(i+1) = radius * cos(th) * sin(phi);
+            y(i+1) = radius * sin(th) * sin(phi);
+            z(i+1) = radius * cos(phi);
+        end
         
     end
 end
