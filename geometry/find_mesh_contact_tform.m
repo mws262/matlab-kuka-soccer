@@ -49,6 +49,9 @@ validateattributes(mesh_data, {'struct'}, {});
 % Projection to untransformed mesh.
 [ ~, untransformed_surface_point, untransformed_surface_normal ] = point2trimesh_with_normals( point_near_mesh, mesh_data );
 
+% rotation = get_rotation_from_vecs(destination_normal, -untransformed_surface_normal);
+% rotation = axang2rotm([-untransformed_surface_normal, twist_angle_about_normal])*rotation;
+
 surface_pt_to_origin = trvec2tform(-untransformed_surface_point); % Translate the original surface point to the origin.
 twist_about_untformed_normal = rotm2tform(axang2rotm([untransformed_surface_normal, twist_angle_about_normal])); % Rotate about the normal vector.
 untformed_surface_normal_to_target = rotm2tform(get_rotation_from_vecs(untransformed_surface_normal, -destination_normal)); % Rotation taking the original normal vector to the opposite of the target vector.

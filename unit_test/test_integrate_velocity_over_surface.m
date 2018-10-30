@@ -17,7 +17,7 @@ tolerance = 1e-8;
 theader('Testing integrate_velocity_over_surface.');
 
 exceptions = {};
-exceptions{end+1} = do_test(@line_on_sphere);
+exceptions{end+1} = do_test(@line_on_plane);
 
     function line_on_plane()
         tname('Linear velocity on planes');
@@ -58,20 +58,30 @@ exceptions{end+1} = do_test(@line_on_sphere);
         rot_plane_dat.face_normals = (rotation*plane_dat.face_normals')';
         rot_plane_dat.vertex_normals = (rotation*plane_dat.vertex_normals')';
         
+        patch('Faces', rot_plane_dat.faces, 'Vertices', rot_plane_dat.vertices);
+        hold on;
+        axis equal;
+        
+        
         % Diagonal across the plane.
         prob.time_vector = linspace(0, sqrt(2), 100)';
         prob.velocity_vector = ones(100,3) .* (rotation*[-1, 0, -1]'/norm([-1, 0, -1]))';
-        prob.initial_surface_point = (rotation * [-1, 0, -1]')';
+        prob.initial_surface_point = (rotation * [-1, -1, -1]')';
         prob.normals_to_match =  (rotation * [0 -1 0]')';
         prob.orientations_about_normal = 0;
         prob.mesh_data = rot_plane_dat;
         
+        plot3(prob.initial_surface_point(:,1), prob.initial_surface_point(:,2), prob.initial_surface_point(:,3), '.', 'MarkerSize', 30);
+        
         output = integrate_velocity_over_surface(prob, opts);
         target_loc =  rotation * [0.5, 0, 0.5]';
+        
+        plot3(output.mesh_surface_path(:,1),output.mesh_surface_path(:,2),output.mesh_surface_path(:,3),'LineWidth', 2);
+        
         assert_near(output.mesh_surface_path(end,:), target_loc', tolerance, 'Integration over surface did not trace to the expected location.');
         assert_near(sqrt(dot(diff(output.mesh_surface_path),diff(output.mesh_surface_path),2)),diff(prob.time_vector), tolerance, 'Distance traveled should match linear velocity * time.');
           
-        % Bottom to top, except rotate up by 45 degrees
+        % Bottom to top, except rotate down by 45 degrees
         prob.time_vector = linspace(0, 1, 100)';
         prob.velocity_vector = ones(100,3) .* (rotation*[-1, 0, -1]'/norm([-1, 0, -1]))';
         prob.initial_surface_point = (rotation * [-1, 0, -1]')';
@@ -80,11 +90,14 @@ exceptions{end+1} = do_test(@line_on_sphere);
         prob.mesh_data = rot_plane_dat;
         
         output = integrate_velocity_over_surface(prob, opts);
-        target_loc =  rotation * [-0.5, 0, 0.5]';
+        target_loc =  rotation * [0.5, 0, -0.5]';
+        
+        plot3(output.mesh_surface_path(:,1),output.mesh_surface_path(:,2),output.mesh_surface_path(:,3),'LineWidth', 2);
+
         assert_near(output.mesh_surface_path(end,:), target_loc', tolerance, 'Integration over surface did not trace to the expected location.');
         assert_near(sqrt(dot(diff(output.mesh_surface_path),diff(output.mesh_surface_path),2)),diff(prob.time_vector), tolerance, 'Distance traveled should match linear velocity * time.');
         
-        % Stay along the bottom. Rotate down by 45 degrees.
+        % Stay along the bottom. Rotate up by 45 degrees.
         prob.time_vector = linspace(0, 1, 100)';
         prob.velocity_vector = ones(100,3) .* (rotation*[-1, 0, -1]'/norm([-1, 0, -1]))';
         prob.initial_surface_point = (rotation * [-1, 0, -1]')';
@@ -102,31 +115,32 @@ exceptions{end+1} = do_test(@line_on_sphere);
     function line_on_sphere()
         tname('Linear velocity on spheres');
         
-%         sph = get_mesh_data('geodesic_sphere');
-%         prob = integrate_velocity_over_surface('problem');
-%         opts = integrate_velocity_over_surface('options');
-%                 prob.time_vector = linspace(0, 6*pi, 1000)';
-%         prob.velocity_vector = [sin(prob.time_vector), zeros(1000,1), ones(1000,1)];
-% %         prob.velocity_vector = prob.velocity_vector./sqrt(sum(prob.velocity_vector.*prob.velocity_vector,2));
-%         
-%         prob.initial_surface_point = [-0.8, -1, 0.2];
-%         prob.normals_to_match =  [1,0,0];%prob.velocity_vector(1,:);
-%         prob.orientations_about_normal = 0;
-%         prob.mesh_data = sph;
-%         
-%         output = integrate_velocity_over_surface(prob, opts);
-%         close all;
-%         figure;
-%         p = patch('Faces', sph.faces, 'Vertices', sph.vertices, 'FaceColor', [1,0.5, 0.5], 'EdgeAlpha', 0.5);
-%         p.FaceAlpha = 0.5;
-%         hold on;
-% %         draw_all_normals(sph, 0.1);
-%         path = output.mesh_surface_path;
-%         plot3(path(:,1), path(:,2), path(:,3), 'LineWidth', 5);
-%         axis equal;
-%         
-%         d = diff(path);
-%         dist = sqrt(sum(d.*d,2))
+        pts = 4000;
+        sph = get_mesh_data('geodesic_sphere');
+        prob = integrate_velocity_over_surface('problem');
+        opts = integrate_velocity_over_surface('options');
+                prob.time_vector = linspace(0, 6*pi, pts)';
+        prob.velocity_vector = [zeros(pts,1), zeros(pts,1), ones(pts,1)];
+%         prob.velocity_vector = prob.velocity_vector./sqrt(sum(prob.velocity_vector.*prob.velocity_vector,2));
+        
+        prob.initial_surface_point = [-0.8, -1, 0.2];
+        prob.normals_to_match =  [1,0,0];%prob.velocity_vector(1,:);
+        prob.orientations_about_normal = 0;
+        prob.mesh_data = sph;
+        
+        output = integrate_velocity_over_surface(prob, opts);
+        close all;
+        figure;
+        p = patch('Faces', sph.faces, 'Vertices', sph.vertices, 'FaceColor', [1,0.5, 0.5], 'EdgeAlpha', 0.5);
+        p.FaceAlpha = 0.5;
+        hold on;
+%         draw_all_normals(sph, 0.1);
+        path = output.mesh_surface_path;
+        plot3(path(:,1), path(:,2), path(:,3), 'LineWidth', 5);
+        axis equal;
+        
+        d = diff(path);
+        dist = sqrt(sum(d.*d,2))
 
         tspan = linspace(0,5,500)';
         vspan = [ones(length(tspan),1), 0.3*ones(length(tspan),1), zeros(length(tspan),1)];  

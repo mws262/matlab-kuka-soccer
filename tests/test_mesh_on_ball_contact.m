@@ -19,10 +19,11 @@ scene_fig = make_visualizer_scene();
 % Manipulator mesh
 detail_level = 1;
 picked_idx = 1;
-debug_mesh = false; % Just load some convex shape instead of a root part.
+debug_mesh = true; % Just load some convex shape instead of a root part.
 % picked_pts = load('../data/picked_faces_single_end.mat', 'selections');
 if debug_mesh
-   mesh_data = get_mesh_data('horiz_plane');
+   mesh_data = get_mesh_data('cube');
+   mesh_data.vertices = mesh_data.vertices .* [3, 3, 3];
    initial_surface_point = [0,0.1,0.15]; % Note that the loaded one is in a bad spot. I think it is inside this mesh, which inverts the problem a tad.
    cmap = flag(size(mesh_data.faces,1));
 else
@@ -64,8 +65,23 @@ contact_desired_rel_com_span = contact_loc_desired_rel_com_fcn(arc_angle*ones(si
 up_vector_span = contact_desired_rel_com_span/ball_radius;
 surface_vel_span = cross(omegaspan, contact_desired_rel_com_span, 2);
 
-[result_path_pts, result_path_normals, rot_integrated] = integrate_velocity_over_surface(tspan, surface_vel_span, initial_surface_point, ...
-    up_vector_span, approach_ang, mesh_data);%, banned_region);
+
+int_vel_opt = integrate_velocity_over_surface('options');
+int_vel_prob = integrate_velocity_over_surface('problem');
+int_vel_prob.mesh_data = mesh_data;
+int_vel_prob.time_vector = tspan;
+int_vel_prob.initial_surface_point = initial_surface_point;
+int_vel_prob.orientations_about_normal = approach_ang;%ones(size(tspan)) * 0;
+int_vel_prob.normals_to_match = up_vector_span;
+int_vel_prob.velocity_vector = surface_vel_span;
+
+inv_vel_out = integrate_velocity_over_surface(int_vel_prob, int_vel_opt);
+result_path_pts = inv_vel_out.mesh_surface_path;
+result_path_normals = inv_vel_out.mesh_surface_normals;
+rot_integrated = inv_vel_out.mesh_rotations;
+
+% [result_path_pts, result_path_normals, rot_integrated] = integrate_velocity_over_surface(tspan, surface_vel_span, initial_surface_point, ...
+%     up_vector_span, approach_ang, mesh_data);%, banned_region);
 
 %% Static plot things and 
 hold on;
