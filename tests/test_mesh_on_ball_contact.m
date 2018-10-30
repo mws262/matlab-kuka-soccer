@@ -23,7 +23,7 @@ debug_mesh = true; % Just load some convex shape instead of a root part.
 % picked_pts = load('../data/picked_faces_single_end.mat', 'selections');
 if debug_mesh
    mesh_data = get_mesh_data('cube');
-   mesh_data.vertices = mesh_data.vertices .* [3, 3, 3];
+   mesh_data.vertices = mesh_data.vertices .* [3, 0.1, 3];
    initial_surface_point = [0,0.1,0.15]; % Note that the loaded one is in a bad spot. I think it is inside this mesh, which inverts the problem a tad.
    cmap = flag(size(mesh_data.faces,1));
 else
@@ -48,11 +48,11 @@ manipulator_patch.Parent = manipulator_tform;
 
 
 %% Pick a path polynomial.
-path_pp = get_path_pp('large_arc', 5);
+path_pp = get_path_pp('large_circle', 5);
 
 total_ts = 250; % Total timesteps to evaluate at.
 approach_ang = 0;
-arc_angle = pi/4; % Angle along the possible arc of the ball to contact.
+arc_angle = 0; % Angle along the possible arc of the ball to contact.
 initial_surface_point = [0,0.1,0.3]; % Initial point on the surface to project down.
 
 %% Evaluate ball and contact point quantities.

@@ -13,7 +13,6 @@ function exceptions = test_integrate_velocity_over_surface()
 %
 
 tolerance = 1e-8;
-
 theader('Testing integrate_velocity_over_surface.');
 
 exceptions = {};
@@ -58,12 +57,11 @@ exceptions{end+1} = do_test(@line_on_plane);
         rot_plane_dat.face_normals = (rotation*plane_dat.face_normals')';
         rot_plane_dat.vertex_normals = (rotation*plane_dat.vertex_normals')';
         
-        patch('Faces', rot_plane_dat.faces, 'Vertices', rot_plane_dat.vertices);
-        hold on;
-        axis equal;
+%         patch('Faces', rot_plane_dat.faces, 'Vertices', rot_plane_dat.vertices);
+%         hold on;
+%         axis equal;
         
-        
-        % Diagonal across the plane.
+        %% Diagonal across the plane.
         prob.time_vector = linspace(0, sqrt(2), 100)';
         prob.velocity_vector = ones(100,3) .* (rotation*[-1, 0, -1]'/norm([-1, 0, -1]))';
         prob.initial_surface_point = (rotation * [-1, -1, -1]')';
@@ -71,17 +69,16 @@ exceptions{end+1} = do_test(@line_on_plane);
         prob.orientations_about_normal = 0;
         prob.mesh_data = rot_plane_dat;
         
-        plot3(prob.initial_surface_point(:,1), prob.initial_surface_point(:,2), prob.initial_surface_point(:,3), '.', 'MarkerSize', 30);
-        
+        % plot3(prob.initial_surface_point(:,1), prob.initial_surface_point(:,2), prob.initial_surface_point(:,3), '.', 'MarkerSize', 30);
         output = integrate_velocity_over_surface(prob, opts);
         target_loc =  rotation * [0.5, 0, 0.5]';
-        
-        plot3(output.mesh_surface_path(:,1),output.mesh_surface_path(:,2),output.mesh_surface_path(:,3),'LineWidth', 2);
-        
+        % plot3(output.mesh_surface_path(:,1),output.mesh_surface_path(:,2),output.mesh_surface_path(:,3),'LineWidth', 2);
+
         assert_near(output.mesh_surface_path(end,:), target_loc', tolerance, 'Integration over surface did not trace to the expected location.');
         assert_near(sqrt(dot(diff(output.mesh_surface_path),diff(output.mesh_surface_path),2)),diff(prob.time_vector), tolerance, 'Distance traveled should match linear velocity * time.');
-          
-        % Bottom to top, except rotate down by 45 degrees
+        assert_near(output.mesh_surface_normals, repmat((rotation*[0,1,0]')', [length(prob.time_vector), 1]), tolerance, 'Mesh surface normals should be opposite the normals to match.');
+        
+        %% Bottom to top, except rotate down by 45 degrees
         prob.time_vector = linspace(0, 1, 100)';
         prob.velocity_vector = ones(100,3) .* (rotation*[-1, 0, -1]'/norm([-1, 0, -1]))';
         prob.initial_surface_point = (rotation * [-1, 0, -1]')';
@@ -91,13 +88,12 @@ exceptions{end+1} = do_test(@line_on_plane);
         
         output = integrate_velocity_over_surface(prob, opts);
         target_loc =  rotation * [0.5, 0, -0.5]';
-        
-        plot3(output.mesh_surface_path(:,1),output.mesh_surface_path(:,2),output.mesh_surface_path(:,3),'LineWidth', 2);
-
+       
         assert_near(output.mesh_surface_path(end,:), target_loc', tolerance, 'Integration over surface did not trace to the expected location.');
         assert_near(sqrt(dot(diff(output.mesh_surface_path),diff(output.mesh_surface_path),2)),diff(prob.time_vector), tolerance, 'Distance traveled should match linear velocity * time.');
-        
-        % Stay along the bottom. Rotate up by 45 degrees.
+        assert_near(output.mesh_surface_normals, repmat((rotation*[0,1,0]')', [length(prob.time_vector), 1]), tolerance, 'Mesh surface normals should be opposite the normals to match.');
+
+        %% Stay along the bottom. Rotate up by 45 degrees.
         prob.time_vector = linspace(0, 1, 100)';
         prob.velocity_vector = ones(100,3) .* (rotation*[-1, 0, -1]'/norm([-1, 0, -1]))';
         prob.initial_surface_point = (rotation * [-1, 0, -1]')';
@@ -106,11 +102,13 @@ exceptions{end+1} = do_test(@line_on_plane);
         prob.mesh_data = rot_plane_dat;
         
         output = integrate_velocity_over_surface(prob, opts);
-        target_loc =  rotation * [0.5, 0, -0.5]';
+                plot3(output.mesh_surface_path(:,1),output.mesh_surface_path(:,2),output.mesh_surface_path(:,3),'LineWidth', 2);
+
+        target_loc =  rotation * [-0.5, 0, 0.5]';
         assert_near(output.mesh_surface_path(end,:), target_loc', tolerance, 'Integration over surface did not trace to the expected location.');
         assert_near(sqrt(dot(diff(output.mesh_surface_path),diff(output.mesh_surface_path),2)),diff(prob.time_vector), tolerance, 'Distance traveled should match linear velocity * time.');      
+        assert_near(output.mesh_surface_normals, repmat((rotation*[0,1,0]')', [length(prob.time_vector), 1]), tolerance, 'Mesh surface normals should be opposite the normals to match.');
     end
-
 
     function line_on_sphere()
         tname('Linear velocity on spheres');
