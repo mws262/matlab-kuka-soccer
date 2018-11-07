@@ -1,4 +1,4 @@
-function [ distance, surface_point, normal_vec, face_idx ] = point2trimesh_with_normals(point_to_project, mesh_data)
+function [ distance, surface_point, normal_vec, face_idx ] = point2trimesh_with_normals(point_to_project, mesh_data, use_face_normals)
 % POINT2TRIMESH_WITH_NORMALS Projects a point to the nearest face, edge or
 % vertex.
 %
@@ -9,6 +9,12 @@ function [ distance, surface_point, normal_vec, face_idx ] = point2trimesh_with_
 %       given mesh. Point gets projected to the nearest point on the mesh.
 %       `mesh_data` -- Structure with faces, vertices, face_normals, and
 %       vertex_normals data.
+%       `use_face_normals` -- (OPTIONAL) If included, can specify whether
+%       to use smoothly interpolated vertex normals or the face normals
+%       when the nearest point is on a face. Vertex normals will still be
+%       used when an edge or vertex is the nearest. This is so large boxes
+%       don't have super-weird non-flat surfaces (according to the
+%       normals).
 %   Outputs:
 %       `distance` -- Distance from the provided point to its projection on
 %       the surface of the mesh.
@@ -38,7 +44,7 @@ validateattributes(point_to_project, {'numeric'}, {'2d', 'numel', 3, 'real'});
 validate_mesh_struct(mesh_data);
 
 %% Distance Calculation
-    [distance,surface_point,face_idx,normal_vec] = processPoint(mesh_data.faces, mesh_data.vertices, point_to_project, mesh_data.face_normals, mesh_data.vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces);
+[distance,surface_point,face_idx,normal_vec] = processPoint(mesh_data.faces, mesh_data.vertices, point_to_project, mesh_data.face_normals, mesh_data.vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces);
 end
 
 %% Non-vectorized Distance Functions
@@ -173,18 +179,22 @@ F = I;          % (1 x 1)
 
 
 verts = faces(I,:);
-N = sum(vnormals(verts,:).*fliplr(bary(I,:))',1); % Averaging vertex normals rather than using face normals.
-% N = normals(I,:);
+
+if nargin > 5 && use_face_normals
+    N = normals(I,:);
+else
+    N = sum(vnormals(verts,:).*fliplr(bary(I,:))',1); % Averaging vertex normals rather than using face normals.
+end
 end
 
 function sgn = signOfLargest(coeff)
-    [~,I] = max(abs(coeff));
-    sgn = sign(coeff(I));
-    if sgn==0, sgn=1; end
+[~,I] = max(abs(coeff));
+sgn = sign(coeff(I));
+if sgn==0, sgn=1; end
 end
 
 function d = dot2(A,B)
-    % dot product along 2nd dimension with singleton extension
-    d = sum(bsxfun(@times,A,B),2);
+% dot product along 2nd dimension with singleton extension
+d = sum(bsxfun(@times,A,B),2);
 end
 

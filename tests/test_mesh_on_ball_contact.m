@@ -24,7 +24,6 @@ debug_mesh = true; % Just load some convex shape instead of a root part.
 if debug_mesh
    mesh_data = get_mesh_data('cube');
    mesh_data.vertices = mesh_data.vertices .* [3, 0.1, 3];
-   initial_surface_point = [0,0.1,0.15]; % Note that the loaded one is in a bad spot. I think it is inside this mesh, which inverts the problem a tad.
    cmap = flag(size(mesh_data.faces,1));
 else
     mesh_data = get_mesh_data('dummy_manipulator_high_res');
@@ -53,7 +52,7 @@ path_pp = get_path_pp('large_circle', 5);
 total_ts = 250; % Total timesteps to evaluate at.
 approach_ang = 0;
 arc_angle = 0; % Angle along the possible arc of the ball to contact.
-initial_surface_point = [0,0.1,0.3]; % Initial point on the surface to project down.
+initial_surface_point = [0,1,0.1]; % Initial point on the surface to project down.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
@@ -67,6 +66,8 @@ surface_vel_span = cross(omegaspan, contact_desired_rel_com_span, 2);
 
 
 int_vel_opt = integrate_velocity_over_surface('options');
+int_vel_opt.use_face_normals = true;
+
 int_vel_prob = integrate_velocity_over_surface('problem');
 int_vel_prob.mesh_data = mesh_data;
 int_vel_prob.time_vector = tspan;

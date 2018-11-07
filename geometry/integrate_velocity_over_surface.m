@@ -11,6 +11,7 @@ default_problem.mesh_data = '';
 %% Options structure.
 default_options.check_banned_regions = false;
 default_options.banned_region_mesh = '';
+default_options.use_face_normals = false;
 
 %% Return template problem / options.
 if nargin == 0
@@ -85,28 +86,28 @@ for i = 1:total_steps - 1
     
     % Half-step velocity evaluated with initial velocity.
     pt_star_k2 = current_pt + 0.5 * k_1 * dt;
-    [ ~, ~, new_normal_vec_k2 ] = point2trimesh_with_normals( pt_star_k2, problem.mesh_data );
+    [ ~, ~, new_normal_vec_k2 ] = point2trimesh_with_normals( pt_star_k2, problem.mesh_data, options.use_face_normals);
     rotation_k2 = get_rotation_from_vecs(current_normal, new_normal_vec_k2) * rotation;
     vel_k2 = -(problem.velocity_vector(i,:) + problem.velocity_vector(i + 1,:))/2; % Just assume average.
     k_2 = (rotation_k2*vel_k2')';
     
     % Half-step velocity evaluated with intermediate velocity.
     pt_star_k3 = current_pt + 0.5 * k_2 * dt;
-    [ ~, ~, new_normal_vec_k3 ] = point2trimesh_with_normals( pt_star_k3, problem.mesh_data );
+    [ ~, ~, new_normal_vec_k3 ] = point2trimesh_with_normals( pt_star_k3, problem.mesh_data, options.use_face_normals );
     rotation_k3 = get_rotation_from_vecs(current_normal, new_normal_vec_k3) * rotation;
     vel_k3 = vel_k2;
     k_3 = (rotation_k3*vel_k3')';
     
     % Whole step velocity evaluated with second intermediate velocity.
     pt_star_k4 = current_pt + k_3 * dt;
-    [ ~, ~, new_normal_vec_k4 ] = point2trimesh_with_normals( pt_star_k4, problem.mesh_data );
+    [ ~, ~, new_normal_vec_k4 ] = point2trimesh_with_normals( pt_star_k4, problem.mesh_data, options.use_face_normals );
     rotation_k4 = get_rotation_from_vecs(current_normal, new_normal_vec_k4) * rotation;
     vel_k4 = -problem.velocity_vector(i + 1,:);
     k_4 = (rotation_k4*vel_k4')';
     
     % Weight them and actually step forward.
     new_pt_star = current_pt + (1/6) * (k_1+2*k_2+2*k_3+k_4) * dt;
-    [ ~, surface_point, new_normal_vec ] = point2trimesh_with_normals( new_pt_star, problem.mesh_data );
+    [ ~, surface_point, new_normal_vec ] = point2trimesh_with_normals( new_pt_star, problem.mesh_data, options.use_face_normals );
     % Check if the integration has entered a banned area if a banned_region
     % was given in the arguments.
     if options.check_banned_regions
