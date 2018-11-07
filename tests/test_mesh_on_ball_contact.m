@@ -16,9 +16,9 @@ picked_idx = 1;
 debug_mesh = true; % Just load some convex shape instead of a root part.
 % picked_pts = load('../data/picked_faces_single_end.mat', 'selections');
 if debug_mesh
-   mesh_data = get_mesh_data('cube');
-   mesh_data.vertices = mesh_data.vertices .* [2, 0.2, 2];
-   cmap = flag(size(mesh_data.faces,1));
+    mesh_data = get_mesh_data('cube');
+    mesh_data.vertices = mesh_data.vertices .* [2, 0.2, 2];
+    cmap = flag(size(mesh_data.faces,1));
 else
     mesh_data = get_mesh_data('dummy_manipulator_high_res');
     banned_region = get_mesh_data('manipulator_banned1');
@@ -46,7 +46,7 @@ path_pp = get_path_pp('large_circle', 5);
 total_ts = 250; % Total timesteps to evaluate at.
 approach_ang = 0;
 arc_angle = pi/2.5; % Angle along the possible arc of the ball to contact.
-initial_surface_point = [0,1,0]; % Initial point on the surface to project down.
+initial_surface_point = [0,1,0.1]; % Initial point on the surface to project down.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
@@ -75,10 +75,32 @@ result_path_pts = inv_vel_out.mesh_surface_path;
 result_path_normals = inv_vel_out.mesh_surface_normals;
 rot_integrated = inv_vel_out.mesh_rotations;
 
-% [result_path_pts, result_path_normals, rot_integrated] = integrate_velocity_over_surface(tspan, surface_vel_span, initial_surface_point, ...
-%     up_vector_span, approach_ang, mesh_data);%, banned_region);
+%% Round up data to save.
+% ball
+% tspan, posspan, velspan, accelspan, omegaspan, quatspan
+% % ctact pt
+% world_contact_desired_span, surface_vel_span
+% box
+box_pos = zeros(length(tspan) - 2, 3);
+box_quat = zeros(length(tspan) - 2, 4);
+box_timings = tspan(2:end - 1);
+for i = 2:length(tspan) - 1
+    surface_to_origin_translation = trvec2tform(-result_path_pts(i,:));
+    world_origin_to_goal_pt_translation = trvec2tform(world_contact_desired_span(i,:));
+    
+    surf_vel_untransformed_to_planar_vel = rotm2tform(rot_integrated(:,:,i)');
+    ball_contact_shift_tform = rotm2tform(get_rotation_from_vecs(up_vector_span(1,:), up_vector_span(i,:))); % upvec_rot(:,:,i));%
+    tform = world_origin_to_goal_pt_translation * ball_contact_shift_tform * surf_vel_untransformed_to_planar_vel * surface_to_origin_translation;
+    box_pos(i - 1, :) = tform2trvec(tform);
+    box_quat(i - 1, :) = tform2quat(tform);  
+end
 
-%% Static plot things and 
+notes = 'Pushing box is a rectangular prism with xyz dimensions of 0.4, 0.04, 0.4. Untransformed, the box is centered about the origin. The ball radius is 0.1. Contact point positions are relative to the world origin.';
+save_box_plan_to_file('box_oval', box_pos, box_quat, box_timings, ...
+    tspan, posspan + [0, 0, ball_radius], velspan, accelspan, omegaspan, quatspan, ...
+    tspan(2:end-1), world_contact_desired_span(2:end-1,:), surface_vel_span(2:end-1,:), ones(size(tspan)), notes);
+
+%% Static plot things and
 hold on;
 draw_path_and_accel(posspan, accelspan, 3);
 
@@ -87,16 +109,16 @@ surface_vel_pl = quiver3(0,0,0,0,0,0);
 contact_pt_pl = plot(0,0, '.g', 'MarkerSize', 20);
 
 % Video recording if desired
-write_to_vid = false;
+write_to_vid = true;
 if write_to_vid
     framerate = 60;
-    vid_writer = VideoWriter('rolly_link_vid2.avi'); % Convert for Slack with 'ffmpeg -i infile.avi youroutput.mp4'
+    vid_writer = VideoWriter('box_push.mp4', 'MPEG-4'); % Convert for Slack with 'ffmpeg -i infile.avi youroutput.mp4'
     vid_writer.FrameRate = framerate;
     vid_writer.Quality = 100;
     open(vid_writer);
 end
 
-for i = 1:length(tspan) - 1
+for i = 2:length(tspan) - 1
     quat = quatspan(i,:);
     ball_patch.Vertices = quatrotate(quat, ball_verts_untransformed) + repmat(posspan(i,:)  + [0, 0, ball_radius], [size(ball_verts_untransformed,1),1]);
     

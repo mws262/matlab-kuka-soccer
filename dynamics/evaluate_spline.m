@@ -46,18 +46,25 @@ posspan = ppval(pos_pp, tspan)';
 velspan = ppval(vel_pp, tspan)';
 accelspan = ppval(accel_pp, tspan)';
 
+% TODO find a way to do this right!!
 % Sometimes, the first acceleration elements end up with an epsilon (e.g.
 % 1e-17) at zero with the wrong sign! This causes a weird jerk after the
 % first timestep.
-if abs(accelspan(1,1)) < 1e-12 && sign(accelspan(1,1)) ~= sign(accelspan(2,1))
-    accelspan(1,1) = -sign(accelspan(1,1))*eps;
-end
-if abs(accelspan(1,2)) < 1e-12 && sign(accelspan(1,2)) ~= sign(accelspan(2,2))
-    accelspan(1,2) = -sign(accelspan(1,2))*eps;
-end
-if abs(accelspan(1,3)) < 1e-12 && sign(accelspan(1,3)) ~= sign(accelspan(2,3))
-    accelspan(1,3) = -sign(accelspan(1,3))*eps;
-end
+% if abs(accelspan(1,1)) < 1e-12 && sign(accelspan(1,1)) ~= sign(accelspan(2,1))
+%     accelspan(1,1) = -sign(accelspan(1,1))*eps;
+% end
+% if abs(accelspan(1,2)) < 1e-12 && sign(accelspan(1,2)) ~= sign(accelspan(2,2))
+%     accelspan(1,2) = -sign(accelspan(1,2))*eps;
+% end
+% if abs(accelspan(1,3)) < 1e-12 && sign(accelspan(1,3)) ~= sign(accelspan(2,3))
+%     accelspan(1,3) = -sign(accelspan(1,3))*eps;
+% end
+% if dot(accelspan(1,:), accelspan(1,:)) < 1e-10 && dot(accelspan(end,:), accelspan(end,:)) < 1e-10
+%     interpaccel = (accelspan(2,:) + accelspan(end-1,:))/2;
+%     accelspan(1,:) = interpaccel;
+%     accelspan(end,:) = interpaccel;
+%     
+% end
 
 % Find derived quantities.
 zero_vec_pts = zeros(size(tspan));
