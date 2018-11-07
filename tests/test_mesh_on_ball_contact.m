@@ -4,12 +4,6 @@
 % rolling contact is correct.
 
 close all; clear all;
-addpath ../;
-addpath ../vis/;
-addpath ../geometry/;
-addpath ../derived_autogen/;
-addpath ../data/;
-addpath ../dynamics/;
 
 % Ball and scene
 ball_radius = 0.1;
@@ -23,7 +17,7 @@ debug_mesh = true; % Just load some convex shape instead of a root part.
 % picked_pts = load('../data/picked_faces_single_end.mat', 'selections');
 if debug_mesh
    mesh_data = get_mesh_data('cube');
-   mesh_data.vertices = mesh_data.vertices .* [3, 0.1, 3];
+   mesh_data.vertices = mesh_data.vertices .* [2, 0.2, 2];
    cmap = flag(size(mesh_data.faces,1));
 else
     mesh_data = get_mesh_data('dummy_manipulator_high_res');
@@ -37,7 +31,7 @@ face_normals = mesh_data.face_normals;
 vertex_normals = mesh_data.vertex_normals;
 
 manipulator_patch = patch('Faces', faces, 'Vertices', vertices, 'FaceNormals', face_normals, 'VertexNormals', vertex_normals);
-manipulator_patch.EdgeColor = [0.1, 0.1, 0.1];
+manipulator_patch.EdgeColor = [0.1, 0.1, 0.2];
 manipulator_patch.FaceColor = 'flat';
 manipulator_patch.FaceVertexCData = cmap;
 manipulator_patch.FaceAlpha = 0.65;
@@ -51,8 +45,8 @@ path_pp = get_path_pp('large_circle', 5);
 
 total_ts = 250; % Total timesteps to evaluate at.
 approach_ang = 0;
-arc_angle = 0; % Angle along the possible arc of the ball to contact.
-initial_surface_point = [0,1,0.1]; % Initial point on the surface to project down.
+arc_angle = pi/2.5; % Angle along the possible arc of the ball to contact.
+initial_surface_point = [0,1,0]; % Initial point on the surface to project down.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...

@@ -43,14 +43,19 @@ function [ distance, surface_point, normal_vec, face_idx ] = point2trimesh_with_
 validateattributes(point_to_project, {'numeric'}, {'2d', 'numel', 3, 'real'});
 validate_mesh_struct(mesh_data);
 
+if nargin > 2
+    face_norms = use_face_normals;
+else
+    face_norms = false;
+end
 %% Distance Calculation
-[distance,surface_point,face_idx,normal_vec] = processPoint(mesh_data.faces, mesh_data.vertices, point_to_project, mesh_data.face_normals, mesh_data.vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces);
+[distance,surface_point,face_idx,normal_vec] = processPoint(mesh_data.faces, mesh_data.vertices, point_to_project, mesh_data.face_normals, mesh_data.vertex_normals, @distance_to_vertices, @distance_to_edges, @distance_to_surfaces, face_norms);
 end
 
 %% Non-vectorized Distance Functions
 %  (can process only one point)
 function [D,P,F,N] = processPoint(faces, vertices, point, ...
-    face_normals, vertex_normals, distance_to_vertices, distance_to_edges, distance_to_surfaces)
+    face_normals, vertex_normals, distance_to_vertices, distance_to_edges, distance_to_surfaces, use_face_normals)
 
 d = zeros(3,1) + realmax; % (distanceTypes x 1) Made arbitrarily large so "empty" elements never win the min. NaN is oddly slow.
 p = zeros(3,3); % (distanceTypes x xyz)
@@ -67,7 +72,7 @@ n = zeros(3,3);
 [d(2),p(2,:),f(2),n(2,:)] = distance_to_edges(faces,vertices,point,face_normals, vertex_normals);
 
 % find nearest point on all surfaces
-[d(3),p(3,:),f(3),n(3,:)] = distance_to_surfaces(faces,vertices,point,face_normals, vertex_normals);
+[d(3),p(3,:),f(3),n(3,:)] = distance_to_surfaces(faces,vertices,point,face_normals, vertex_normals, use_face_normals);
 
 % find minimum distance type
 [~,I] = min(abs(d),[],1);
@@ -140,7 +145,7 @@ sgn = signOfLargest(coefficients);
 D = D*sgn;
 end
 
-function [D,P,F,N] = distance_to_surfaces(faces,vertices,point,normals,vnormals)
+function [D,P,F,N] = distance_to_surfaces(faces,vertices,point,normals,vnormals, use_face_normals)
 
 r1 = vertices(faces(:,1),:);   % (#faces x 3) % 1st vertex of every face
 r2 = vertices(faces(:,2),:);   % (#faces x 3) % 2nd vertex of every face
