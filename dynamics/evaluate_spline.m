@@ -1,5 +1,5 @@
 function [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
-    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn] = evaluate_spline(pos_pp, ball_radius, num_pts)
+    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn, contact_loc_world_vel] = evaluate_spline(pos_pp, ball_radius, num_pts)
 % PROCESS_SPLINE Given a spline path, evaluate at time steps, returning all
 % state information about the motion of the ball.
 %
@@ -40,11 +40,13 @@ tspan = linspace(pos_pp.breaks(1), pos_pp.breaks(end), num_pts)';
 % acceleration.
 vel_pp = fnder(pos_pp);
 accel_pp = fnder(vel_pp);
+jerk_pp = fnder(accel_pp);
 
 % Evaluate numerically.
 posspan = ppval(pos_pp, tspan)';
 velspan = ppval(vel_pp, tspan)';
 accelspan = ppval(accel_pp, tspan)';
+jerkspan = ppval(jerk_pp, tspan)';
 
 % Sometimes, the first acceleration elements end up with an epsilon (e.g.
 % 1e-17) at zero with the wrong sign! This causes a weird jerk after the
@@ -69,6 +71,8 @@ quatspan = quatintegrate(tspan, quat_init, omegaspan); % Orientation
 % Return some useful function handles, with already known fields filled in.
 world_contact_loc_desired_fcn = @(arc_angles_over_time)(contact_arc_fcn(ball_radius, accelspan(:,1), accelspan(:,2), posspan(:,1), posspan(:,2), arc_angles_over_time));
 contact_loc_desired_rel_com_fcn = @(arc_angles_over_time)(contact_arc_centered_fcn(ball_radius, accelspan(:,1), accelspan(:,2), arc_angles_over_time));
+
+contact_loc_world_vel = @(theta, thetadot)full_contact_velocity_fcn(ball_radius, accelspan(:,1), accelspan(:,2), jerkspan(:,1), jerkspan(:,2), thetadot, theta, velspan(:,1), velspan(:,2));
 
 end
 

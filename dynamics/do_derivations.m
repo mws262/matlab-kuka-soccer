@@ -15,7 +15,7 @@ function derived_eqns = do_derivations()
 %
 
 
-syms fax fay faz fn ffx ffy rx ry vx vy ax ay wx wy wz wdx wdy wdz fric_coeff theta real;
+syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy wx wy wz wdx wdy wdz fric_coeff theta thetadot real;
 syms g m I R positive;
 % g - gravity
 % m - ball mass
@@ -31,6 +31,8 @@ syms g m I R positive;
 % vy - COM velocity in y
 % ax - COM acceleration in x direction. Known from trajectory.
 % ay - COM acceleration in y direction. Known from trajectory.
+% jx - jerk x component.
+% jy - jerk y component.
 % wx - angular rate of ball about x axis
 % wy - angular rate of ball about y axis
 % wz - angular rate of ball about z axis
@@ -39,6 +41,7 @@ syms g m I R positive;
 % wdz - angular acceleration of ball about z axis
 % fric_coeff - ground to ball friction coefficient.
 % theta - angle from horizontal along ball arc which force is applied
+% thetadot - theta velocity.
 
 disp('Running derivations.');
 
@@ -87,10 +90,10 @@ friction_actual_max = subs(friction_max, faz, force_z_applied);
 no_slip_ground_eqn = cross(w,-rp_g) == Vcom;
 [wx, wy, wz] = solve(no_slip_ground_eqn, w); % Find angular rate based on COM velocity. Note that wz stays zero under assumptions.
 
-
 arm_contact_pt_equator = -R*Acom/norm(Acom); % Arm must push somewhere on the arc going from this point on the ball to the top and from this point to the bottom in world coordinates.
 full_contact_arc = arm_contact_pt_equator*cos(theta) + R*sin(theta)*k; % Contact point can be on this arc for theta (-pi/2, pi/2) in world coordinates.
 full_contact_arc_shifted = full_contact_arc + R*k + rx*i + ry*j; % Shift to position and height of ball.
+full_contact_velocity = jacobian(full_contact_arc_shifted,[rx, ry, vx, vy, ax, ay, theta]) * [vx, vy, ax, ay, jx, jy, thetadot]';
 
 equator_contact_velocity = cross([wx,wy,wz], arm_contact_pt_equator) + [vx, vy, 0];
 
@@ -116,6 +119,8 @@ derived_eqns.contact_arc_fcn = matlabFunction(full_contact_arc_shifted', 'File',
 derived_eqns.contact_arc_centered_fcn = matlabFunction(full_contact_arc', 'File', strcat(write_location, 'contact_arc_centered_fcn'));
 derived_eqns.equator_contact_velocity_fcn = matlabFunction(equator_contact_velocity, 'File', strcat(write_location, 'equator_contact_velocity_fcn'));
 derived_eqns.world_contact_velocity_fcn = matlabFunction(vsurf_general, 'File', strcat(write_location, 'world_contact_velocity_fcn'));
+derived_eqns.full_contact_velocity = matlabFunction(full_contact_velocity', 'File', strcat(write_location, 'full_contact_velocity_fcn'));
+
 derived_eqns.v_surfx_fcn = matlabFunction(v_surfx, 'File', strcat(write_location, 'v_surfx_fcn'));
 derived_eqns.v_surfy_fcn = matlabFunction(v_surfy, 'File', strcat(write_location, 'v_surfy_fcn'));
 derived_eqns.isurf_fcn = matlabFunction(isurf', 'File', strcat(write_location, 'isurf_fcn'));
