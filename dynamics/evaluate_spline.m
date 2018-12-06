@@ -1,5 +1,5 @@
 function [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
-    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn, contact_loc_world_vel] = evaluate_spline(pos_pp, ball_radius, num_pts)
+    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn, contact_loc_world_vel, jerkspan] = evaluate_spline(pos_pp, ball_radius, num_pts)
 % PROCESS_SPLINE Given a spline path, evaluate at time steps, returning all
 % state information about the motion of the ball.
 %

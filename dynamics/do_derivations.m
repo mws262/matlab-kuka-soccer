@@ -15,7 +15,7 @@ function derived_eqns = do_derivations()
 %
 
 
-syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy wx wy wz wdx wdy wdz fric_coeff theta thetadot real;
+syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy wx wy wz wdx wdy wdz pusherX pusherY pusherZ fric_coeff theta thetadot real;
 syms g m I R positive;
 % g - gravity
 % m - ball mass
@@ -93,11 +93,19 @@ no_slip_ground_eqn = cross(w,-rp_g) == Vcom;
 arm_contact_pt_equator = -R*Acom/norm(Acom); % Arm must push somewhere on the arc going from this point on the ball to the top and from this point to the bottom in world coordinates.
 full_contact_arc = arm_contact_pt_equator*cos(theta) + R*sin(theta)*k; % Contact point can be on this arc for theta (-pi/2, pi/2) in world coordinates.
 full_contact_arc_shifted = full_contact_arc + R*k + rx*i + ry*j; % Shift to position and height of ball.
-full_contact_velocity = jacobian(full_contact_arc_shifted,[rx, ry, vx, vy, ax, ay, theta]) * [vx, vy, ax, ay, jx, jy, thetadot]';
+vsurf_general = (vx*i + vy*j) + cross((wx*i + wy*j + wz*k), full_contact_arc); % Surface velocity of ball at contact point, regardless of contact angle along arc.
+
+% Contact point has its own velocity which moves along the surface of the
+% ball, but does not necessarily correspond to the surface velocity of the
+% ball.
+pusher_pos = [pusherX; pusherY; pusherZ]; % Center of whatever thing is pushing the ball.
+contact_rel_pusher = full_contact_arc_shifted - pusher_pos;
+contact_point_vel_world = simplify(jacobian(full_contact_arc_shifted,[rx, ry, vx, vy, ax, ay, theta]) * [vx, vy, ax, ay, jx, jy, thetadot]');
+pusher_angular_rate = simplify(cross(full_contact_arc, contact_point_vel_world - Vcom)/R^2);
+pusher_vel = vsurf_general + cross(pusher_angular_rate, -contact_rel_pusher);
 
 equator_contact_velocity = cross([wx,wy,wz], arm_contact_pt_equator) + [vx, vy, 0];
 
-vsurf_general = (vx*i + vy*j) + cross((wx*i + wy*j + wz*k), full_contact_arc); % Surface velocity of ball at contact point, regardless of contact angle along arc.
 
 % NOTE: these have singularities.
 isurf = simplify(cross(k, -full_contact_arc/norm(full_contact_arc))); % Surface-aligned 'horizontal' component. Note cross( is,js) = vector pointing towards center of ball from contact point.
@@ -119,7 +127,8 @@ derived_eqns.contact_arc_fcn = matlabFunction(full_contact_arc_shifted', 'File',
 derived_eqns.contact_arc_centered_fcn = matlabFunction(full_contact_arc', 'File', strcat(write_location, 'contact_arc_centered_fcn'));
 derived_eqns.equator_contact_velocity_fcn = matlabFunction(equator_contact_velocity, 'File', strcat(write_location, 'equator_contact_velocity_fcn'));
 derived_eqns.world_contact_velocity_fcn = matlabFunction(vsurf_general, 'File', strcat(write_location, 'world_contact_velocity_fcn'));
-derived_eqns.full_contact_velocity = matlabFunction(full_contact_velocity', 'File', strcat(write_location, 'full_contact_velocity_fcn'));
+derived_eqns.full_contact_velocity = matlabFunction(contact_point_vel_world', 'File', strcat(write_location, 'full_contact_velocity_fcn'));
+derived_eqns.pusher_velocity = matlabFunction(pusher_vel, 'File', strcat(write_location, 'pusher_velocity_fcn'));
 
 derived_eqns.v_surfx_fcn = matlabFunction(v_surfx, 'File', strcat(write_location, 'v_surfx_fcn'));
 derived_eqns.v_surfy_fcn = matlabFunction(v_surfy, 'File', strcat(write_location, 'v_surfy_fcn'));

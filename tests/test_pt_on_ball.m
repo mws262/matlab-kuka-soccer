@@ -31,14 +31,14 @@ manipulator_patch.Parent = manipulator_tform;
 %% Pick a path polynomial.
 path_pp = get_path_pp('large_circle', 5);
 
-total_ts = 1000; % Total timesteps to evaluate at.
+total_ts = 2000; % Total timesteps to evaluate at.
 approach_ang = 0;
 arc_angle = pi/3; % Angle along the possible arc of the ball to contact.
 initial_surface_point = [0,1,0]; % Initial point on the surface to project down.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
-    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn, contact_loc_world_vel] = evaluate_spline(path_pp, ball_radius, total_ts);
+    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn, contact_loc_world_vel, jerkspan] = evaluate_spline(path_pp, ball_radius, total_ts);
 
 world_contact_desired_span = world_contact_loc_desired_fcn(arc_angle*ones(size(tspan)));
 contact_desired_rel_com_span = contact_loc_desired_rel_com_fcn(arc_angle*ones(size(tspan)));
@@ -75,9 +75,26 @@ aligning_vel = dot(contact_loc_vel - velspan, surface_vel_span./surfvelnorms, 2)
 net_box_vel = contact_loc_vel + surface_vel_span - aligning_vel.*surface_vel_span./surfvelnorms;
 integrated_pt_span = cumtrapz(tspan, net_box_vel) + init_pt;
 
+% com_vel = cross(pusher_angular_rate, world_contact_desired_span - box_center);
+% surface_vel_span + com_vel + velspan
+
+box_center_span = zeros(size(world_contact_desired_span));
+box_center_span(1, :) = init_pt;
+for i = 1:length(tspan) - 1
+    vel = pusher_velocity_fcn(ball_radius,accelspan(i,1),accelspan(i,2),...
+            jerkspan(i,1),jerkspan(i,2),box_center_span(i,1),box_center_span(i,2),box_center_span(i,3),...
+                posspan(i,1), posspan(i,2), 0,arc_angle,velspan(i,1), velspan(i,2));
+            
+%     vel = cross(pusher_angular_rate(i,:), world_contact_desired_span(i,:) - box_center_span(i,:)) + ...
+%         surface_vel_span(i,:) + velspan(i,:);
+    box_center_span(i + 1,:) = box_center_span(i, :) + (tspan(i + 1) - tspan(i)) * vel';
+    
+end
+integrated_pt_span = box_center_span;
+
 % center_of_box = tform2trvec(trvec2tform(integrated_pt_span(1,:))*rotm2tform(quat2rotm(quats(1,:))'))
 draw_path_and_accel(posspan, accelspan, 3);
-for i = 1:10:length(tspan) - 1
+for i = 1:2:length(tspan) - 1
     quat = quatspan(i,:);
     ball_patch.Vertices = quatrotate(quat, ball_verts_untransformed) + repmat(posspan(i,:)  + [0, 0, ball_radius], [size(ball_verts_untransformed,1),1]);
         
