@@ -1,3 +1,4 @@
+function test_pt_on_ball
 % Test mesh in contact with the ball as the ball rolls along a spline path.
 % The contact location on the ball should obey the acceleration
 % requirements. This is mostly to make sure that the geometry of the
@@ -31,70 +32,85 @@ manipulator_patch.Parent = manipulator_tform;
 %% Pick a path polynomial.
 path_pp = get_path_pp('large_circle', 5);
 
-total_ts = 2000; % Total timesteps to evaluate at.
-approach_ang = 0;
-arc_angle = pi/3; % Angle along the possible arc of the ball to contact.
-initial_surface_point = [0,1,0]; % Initial point on the surface to project down.
+total_ts = 1000; % Total timesteps to evaluate at.
+arc_angle = pi/2.7; % Angle along the possible arc of the ball to contact.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
-    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn, contact_loc_world_vel, jerkspan] = evaluate_spline(path_pp, ball_radius, total_ts);
+    world_contact_loc_desired_fcn, contact_loc_desired_rel_com_fcn, ~, jerkspan] = evaluate_spline(path_pp, ball_radius, total_ts);
 
 world_contact_desired_span = world_contact_loc_desired_fcn(arc_angle*ones(size(tspan)));
 contact_desired_rel_com_span = contact_loc_desired_rel_com_fcn(arc_angle*ones(size(tspan)));
-contact_loc_vel = contact_loc_world_vel(arc_angle*ones(size(tspan)), zeros(size(tspan)));
-
-% Just how the contact point moves around on the surface of the ball
-% relative to its center. Nothing to do with ball rotation.
-contact_loc_vel_rel_center = contact_loc_vel - velspan; % For a plane, all rotation comes from this component (I think).
-% w = rxv/|r|^2 world angular rate of pusher.
-pusher_angular_rate = cross(contact_desired_rel_com_span, contact_loc_vel_rel_center)./ball_radius^2;
 
 vec1 = dot(contact_desired_rel_com_span(1,:)/ball_radius,[1,0,0]) * [1,0,0] + dot(contact_desired_rel_com_span(1,:)/ball_radius,[0,1,0]) * [0,1,0];
 rot1 = get_rotation_from_vecs(vec1, contact_desired_rel_com_span(1,:)/ball_radius) * get_rotation_from_vecs([0;1;0], vec1);
 quatinit = rotm2quat(rot1);
-quats = quatintegrate(tspan, quatinit, pusher_angular_rate);
-% rotated_up = quatrotate(quats, [0,0,1])
 
-
-up_vector_span = contact_desired_rel_com_span/ball_radius;
 surface_vel_span = cross(omegaspan, contact_desired_rel_com_span, 2);
 
 contact_pt_pl = plot(0,0,'.g','MarkerSize', 40);
 integrated_contact_pt_pl = plot(0,0,'.y', 'MarkerSize', 40);
-init_pt = world_contact_desired_span(1,:);
+init_pt = world_contact_desired_span(1,:) + [0.0 0 0];
 
-% Come up with how much of the contact point velocity and ball surface velocity
-% align. If they align perfectly, then the box can just follow the surface
-% without changing the contact point on the box. If they don't align (or
-% anti-align), then we need components from both.
+pos = path_pp;
+vel = fnder(path_pp,1);
+accel = fnder(vel,1);
+jerk = fnder(accel,1);
 
-ptvelnorms = sqrt(sum((contact_loc_vel - velspan).^2,2));
-surfvelnorms = sqrt(sum((surface_vel_span).^2,2));
-aligning_vel = dot(contact_loc_vel - velspan, surface_vel_span./surfvelnorms, 2);
-net_box_vel = contact_loc_vel + surface_vel_span - aligning_vel.*surface_vel_span./surfvelnorms;
-integrated_pt_span = cumtrapz(tspan, net_box_vel) + init_pt;
-
-% com_vel = cross(pusher_angular_rate, world_contact_desired_span - box_center);
-% surface_vel_span + com_vel + velspan
-
-box_center_span = zeros(size(world_contact_desired_span));
-box_center_span(1, :) = init_pt;
-for i = 1:length(tspan) - 1
-    vel = pusher_velocity_fcn(ball_radius,accelspan(i,1),accelspan(i,2),...
-            jerkspan(i,1),jerkspan(i,2),box_center_span(i,1),box_center_span(i,2),box_center_span(i,3),...
-                posspan(i,1), posspan(i,2), 0,arc_angle,velspan(i,1), velspan(i,2));
-            
-%     vel = cross(pusher_angular_rate(i,:), world_contact_desired_span(i,:) - box_center_span(i,:)) + ...
-%         surface_vel_span(i,:) + velspan(i,:);
-    box_center_span(i + 1,:) = box_center_span(i, :) + (tspan(i + 1) - tspan(i)) * vel';
+function qdot = planeRHS(t, q)
+    % Evaluate ball path polynomials.
+    pos_eval = ppval(pos, t);
+    vel_eval = ppval(vel, t);
+    accel_eval = ppval(accel, t);
+    jerk_eval = ppval(jerk, t);
     
-end
-integrated_pt_span = box_center_span;
+    % Find linear velocity of the pushing surface.
+    linear_vel = pusher_linear_velocity_fcn(ball_radius, accel_eval(1), accel_eval(2), ...
+            jerk_eval(1), jerk_eval(2), q(1), q(2), q(3), ...
+                pos_eval(1), pos_eval(2), 0, arc_angle, vel_eval(1), vel_eval(2))';
+            
+    % Find the angular velocity of the pushing surface.
+    angular_vel = pusher_angular_velocity_fcn(accel_eval(1), accel_eval(2), jerk_eval(1), ...
+        jerk_eval(2), 0, arc_angle);
+    
+    % verify -- Velocities at the contact point should match.
+%     ball_surf_vel = world_contact_velocity_fcn(accel_eval(1), accel_eval(2), arc_angle, vel_eval(1), vel_eval(2));
+%     ball_surf_vel2 = linear_vel + cross(angular_vel, contact_arc_fcn(ball_radius, accel_eval(1), accel_eval(2), pos_eval(1), pos_eval(2), arc_angle) - q(1:3)')';
+%     ball_surf_vel2 - ball_surf_vel
 
-% center_of_box = tform2trvec(trvec2tform(integrated_pt_span(1,:))*rotm2tform(quat2rotm(quats(1,:))'))
+    qdot = zeros(7,1);
+    qdot(1:3) = linear_vel;
+    qdot(4:7) = 0.5 * quatmultiply([0, angular_vel], q(4:7)');
+end
+
+options = odeset;
+options.AbsTol = 1e-10;
+options.RelTol = 1e-10;
+[tarray, qarray] = ode45(@planeRHS, tspan, [init_pt, quatinit]);
+box_pos = qarray(:, 1:3);
+box_quat = qarray(:, 4:7);
+
+% Find linear velocity of the pushing surface.
+box_vel = pusher_linear_velocity_fcn(ball_radius, accelspan(:, 1), accelspan(:, 2), ...
+         jerkspan(:, 1), jerkspan(:, 2), box_pos(:, 1), box_pos(:, 2), box_pos(:, 3), ...
+         posspan(:, 1), posspan(:, 2), 0, arc_angle, velspan(:, 1), velspan(:, 2));
+
+% Find the angular velocity of the pushing surface.
+box_omega = pusher_angular_velocity_fcn(accelspan(:, 1), accelspan(:, 2), jerkspan(:, 1), ...
+        jerkspan(:, 2), 0, arc_angle);
+
 draw_path_and_accel(posspan, accelspan, 3);
-for i = 1:2:length(tspan) - 1
+
+notes = 'Pushing box is a rectangular prism with xyz dimensions of 0.4, 0.04, 0.4. Untransformed, the box is centered about the origin. The ball radius is 0.1. Contact point positions are relative to the world origin.';
+save_box_plan_to_file('box_oval', tspan, box_pos, box_quat, box_vel, box_omega, ...
+    posspan + [0, 0, ball_radius], velspan, accelspan, quatspan, omegaspan, ...
+    world_contact_desired_span, ones(size(tspan)), notes);
+
+% Check:
+% (box_vel + cross(box_omega, world_contact_desired_span - box_pos, 2)) - ...
+% (velspan + cross(omegaspan, world_contact_desired_span - (posspan + [0, 0, ball_radius]), 2))
+
+for i = 1:1:length(tspan) - 1
     quat = quatspan(i,:);
     ball_patch.Vertices = quatrotate(quat, ball_verts_untransformed) + repmat(posspan(i,:)  + [0, 0, ball_radius], [size(ball_verts_untransformed,1),1]);
         
@@ -103,9 +119,9 @@ for i = 1:2:length(tspan) - 1
     contact_pt_pl.YData = world_contact_desired_span(i,2);
     contact_pt_pl.ZData = world_contact_desired_span(i,3);
     
-    integrated_contact_pt_pl.XData = integrated_pt_span(i,1);
-    integrated_contact_pt_pl.YData = integrated_pt_span(i,2);
-    integrated_contact_pt_pl.ZData = integrated_pt_span(i,3);
+    integrated_contact_pt_pl.XData = box_pos(i,1);
+    integrated_contact_pt_pl.YData = box_pos(i,2);
+    integrated_contact_pt_pl.ZData = box_pos(i,3);
     
     % Surface velocity arrow.
     surface_vel_pl.XData = world_contact_desired_span(i,1);
@@ -123,10 +139,10 @@ for i = 1:2:length(tspan) - 1
     omega_pl.VData = omegaspan(i,2);
     omega_pl.WData = omegaspan(i,3);
     
-    manipulator_tform.Matrix = trvec2tform(integrated_pt_span(i,:))*rotm2tform(quat2rotm(quats(i,:))')*trvec2tform([0, 0.02, 0]);
+    manipulator_tform.Matrix = trvec2tform(box_pos(i,:))*quat2tform(box_quat(i,:))*trvec2tform([0, 0.02, 0]);
     drawnow;
    % pause(0.05);
 end
 
 
-
+end
