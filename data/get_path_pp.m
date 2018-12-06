@@ -47,7 +47,7 @@ switch path_name
         return;
     case 'large_circle'
         R = 0.1;
-        knots = [0,0,0; R,0,0; 0,2*R,0; -R,R,0;0,0,0]' + [0.1,0.1,0]';
+        knots = [0,0,0; R+0.1,0,0; 0,2*R,0; -R-0.05,R + 0.07,0;0,0,0]' + [0.1,0.1,0]';
         breaks = linspace(0, total_time, size(knots,2));
         path_pp = csape(breaks, knots, 'periodic');
         return;

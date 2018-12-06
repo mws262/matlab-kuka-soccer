@@ -109,7 +109,7 @@ surface_vel_pl = quiver3(0,0,0,0,0,0);
 contact_pt_pl = plot(0,0, '.g', 'MarkerSize', 20);
 
 % Video recording if desired
-write_to_vid = true;
+write_to_vid = false;
 if write_to_vid
     framerate = 60;
     vid_writer = VideoWriter('box_push.mp4', 'MPEG-4'); % Convert for Slack with 'ffmpeg -i infile.avi youroutput.mp4'
