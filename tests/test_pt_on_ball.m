@@ -50,7 +50,7 @@ surface_vel_span = cross(omegaspan, contact_desired_rel_com_span, 2);
 
 contact_pt_pl = plot(0,0,'.g','MarkerSize', 40);
 integrated_contact_pt_pl = plot(0,0,'.y', 'MarkerSize', 40);
-init_pt = world_contact_desired_span(1,:) + [0.0 0 0];
+init_pt = world_contact_desired_span(1,:) + contact_desired_rel_com_span(1,:)/ball_radius * 0.02;
 
 pos = path_pp;
 vel = fnder(path_pp,1);
@@ -86,7 +86,7 @@ end
 options = odeset;
 options.AbsTol = 1e-10;
 options.RelTol = 1e-10;
-[tarray, qarray] = ode45(@planeRHS, tspan, [init_pt, quatinit]);
+[tarray, qarray] = ode45(@planeRHS, tspan, [init_pt, quatinit], options);
 box_pos = qarray(:, 1:3);
 box_quat = qarray(:, 4:7);
 
@@ -109,6 +109,11 @@ save_box_plan_to_file('box_oval', tspan, box_pos, box_quat, box_vel, box_omega, 
 % Check:
 % (box_vel + cross(box_omega, world_contact_desired_span - box_pos, 2)) - ...
 % (velspan + cross(omegaspan, world_contact_desired_span - (posspan + [0, 0, ball_radius]), 2))
+
+% Contact pt agreement.
+% ball_cent_ctact = (world_contact_desired_span - (posspan + [0,0, ball_radius]))/ball_radius;
+% ctact_box_center = box_pos - world_contact_desired_span;
+% b = max(0.02 - dot(ctact_box_center, ball_cent_ctact,2)) % should be 0.
 
 for i = 1:1:length(tspan) - 1
     quat = quatspan(i,:);
@@ -139,7 +144,7 @@ for i = 1:1:length(tspan) - 1
     omega_pl.VData = omegaspan(i,2);
     omega_pl.WData = omegaspan(i,3);
     
-    manipulator_tform.Matrix = trvec2tform(box_pos(i,:))*quat2tform(box_quat(i,:))*trvec2tform([0, 0.02, 0]);
+    manipulator_tform.Matrix = trvec2tform(box_pos(i,:))*quat2tform(box_quat(i,:));%*trvec2tform([0, 0.02, 0]);
     drawnow;
    % pause(0.05);
 end
