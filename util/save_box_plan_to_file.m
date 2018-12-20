@@ -1,6 +1,6 @@
 function save_box_plan_to_file(foldername, timings, box_positions, box_quats, box_linear_vel, box_angular_vel, ...
     ball_com_positions, ball_com_velocities, ball_com_accelerations, ball_quats, ball_omegas, ...
-    contact_pt_positions, contact_status, notes)
+    contact_pt_positions, contact_pt_velocities, contact_status, notes)
 mkdir(foldername);
 
 % TODO centralize stuff like this parameter.
@@ -27,6 +27,7 @@ save(['./', foldername, '/ball_alphas.mat'], 'ball_alphas', '-ascii', '-double')
 save(['./', foldername, '/ball_quats.mat'], 'ball_quats', '-ascii', '-double');
 
 save(['./', foldername, '/contact_pt_positions.mat'], 'contact_pt_positions', '-ascii', '-double');
+save(['./', foldername, '/contact_pt_velocities.mat'], 'contact_pt_velocities', '-ascii', '-double');
 
 save(['./', foldername, '/box_positions.mat'], 'box_positions', '-ascii', '-double');
 save(['./', foldername, '/box_quats.mat'], 'box_quats', '-ascii', '-double');

@@ -84,11 +84,19 @@ function qdot = planeRHS(t, q)
 end
 
 options = odeset;
-options.AbsTol = 1e-10;
-options.RelTol = 1e-10;
+options.AbsTol = 1e-12;
+options.RelTol = 1e-12;
+
 [tarray, qarray] = ode45(@planeRHS, tspan, [init_pt, quatinit], options);
 box_pos = qarray(:, 1:3);
 box_quat = qarray(:, 4:7);
+
+% box_accel = zeros(size(qarray,1), 6);
+% for i = 1:size(qarray,1)
+%     box_accel(i,:) = planeRHS(tarray(i), qarray(i,:)')'
+% end
+
+
 
 % Find linear velocity of the pushing surface.
 box_vel = pusher_linear_velocity_fcn(ball_radius, accelspan(:, 1), accelspan(:, 2), ...
@@ -101,10 +109,12 @@ box_omega = pusher_angular_velocity_fcn(accelspan(:, 1), accelspan(:, 2), jerksp
 
 draw_path_and_accel(posspan, accelspan, 3);
 
+world_contact_desired_vel = surface_vel_span + velspan;
+
 notes = 'Pushing box is a rectangular prism with xyz dimensions of 0.4, 0.04, 0.4. Untransformed, the box is centered about the origin. The ball radius is 0.1. Contact point positions are relative to the world origin.';
 save_box_plan_to_file('box_oval', tspan, box_pos, box_quat, box_vel, box_omega, ...
     posspan + [0, 0, ball_radius], velspan, accelspan, quatspan, omegaspan, ...
-    world_contact_desired_span, ones(size(tspan)), notes);
+    world_contact_desired_span, world_contact_desired_vel, ones(size(tspan)), notes);
 
 % Check:
 % (box_vel + cross(box_omega, world_contact_desired_span - box_pos, 2)) - ...

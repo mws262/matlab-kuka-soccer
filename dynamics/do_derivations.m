@@ -15,7 +15,7 @@ function derived_eqns = do_derivations()
 %
 
 
-syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy wx wy wz wdx wdy wdz pusherX pusherY pusherZ fric_coeff theta thetadot real;
+syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy sx sy wx wy wz wdx wdy wdz pusherX pusherY pusherZ fric_coeff theta thetadot thetadotdot real;
 syms g m I R positive;
 % g - gravity
 % m - ball mass
@@ -33,6 +33,8 @@ syms g m I R positive;
 % ay - COM acceleration in y direction. Known from trajectory.
 % jx - jerk x component.
 % jy - jerk y component.
+% sx - snap x component. 0 with cubic splines.
+% sy - snap y component. 0 with cubic splines.
 % wx - angular rate of ball about x axis
 % wy - angular rate of ball about y axis
 % wz - angular rate of ball about z axis
@@ -42,6 +44,7 @@ syms g m I R positive;
 % fric_coeff - ground to ball friction coefficient.
 % theta - angle from horizontal along ball arc which force is applied
 % thetadot - theta velocity.
+% thetadotdot - theta acceleration.
 
 disp('Running derivations.');
 
@@ -108,6 +111,7 @@ contact_pt_rel_pusher_center = contact_pt_rel_world - pusher_center_rel_world; %
 contact_point_vel_rel_world = simplify(jacobian(contact_pt_rel_world,[rx, ry, vx, vy, ax, ay, theta]) * [vx, vy, ax, ay, jx, jy, thetadot]');
 pusher_angular_rate_world = simplify(cross(contact_pt_rel_ball_com, contact_point_vel_rel_world - Vcom_ball)/R^2); % (r x v)/|r|^2. Center velocity subtracted out.
 pusher_vel_rel_world = simplify(ball_surface_vel_rel_world + cross(pusher_angular_rate_world, -contact_pt_rel_pusher_center));
+pusher_accel_rel_world = simplify(jacobian(pusher_vel_rel_world, [rx, ry, vx, vy, ax, ay, jx, jy, theta, thetadot])*[vx, vy, ax, ay, jx, jy, sx, sy, thetadot, thetadotdot]');
 
 equator_contact_velocity = cross([wx,wy,wz], equator_pt_rel_com) + [vx, vy, 0];
 
