@@ -154,61 +154,6 @@ exceptions{end+1} = do_test(@world_contact_velocity);
         assert_near(contact_vel, [0, vy, -vy], tolerance, 'bad equator contact_vel');
     end
 
-%     function contact_unit_vecs()
-%         tname('Contact plane unit vecs.');
-%         
-%         % Unit vectors of contact plane touching somewhere on the sphere.
-%         % NOTE: these go singular.
-%         ax = -1;
-%         ay = 0;
-%         theta = 0;
-%         i_unit = isurf_fcn(ax,ay,theta);
-%         j_unit = jsurf_fcn(ax,ay,theta);
-%         assert_near(i_unit, [0, -1, 0], tolerance, 'bad contact_unit_vecs');
-%         assert_near(j_unit, [0, 0, 1], tolerance, 'bad contact_unit_vecs');
-%         
-%         ax = 1;
-%         ay = 0;
-%         theta = 0;
-%         i_unit = isurf_fcn(ax,ay,theta);
-%         j_unit = jsurf_fcn(ax,ay,theta);
-%         assert_near(i_unit, [0, 1, 0], tolerance, 'bad contact_unit_vecs');
-%         assert_near(j_unit, [0, 0, 1], tolerance, 'bad contact_unit_vecs');
-%         
-%         ax = 0;
-%         ay = 1;
-%         theta = 0;
-%         i_unit = isurf_fcn(ax,ay,theta);
-%         j_unit = jsurf_fcn(ax,ay,theta);
-%         assert_near(i_unit, [-1, 0, 0], tolerance, 'bad contact_unit_vecs');
-%         assert_near(j_unit, [0, 0, 1], tolerance, 'bad contact_unit_vecs');
-%         
-%         ax = 0;
-%         ay = -1;
-%         theta = 0;
-%         i_unit = isurf_fcn(ax,ay,theta);
-%         j_unit = jsurf_fcn(ax,ay,theta);
-%         assert_near(i_unit, [1, 0, 0], tolerance, 'bad contact_unit_vecs');
-%         assert_near(j_unit, [0, 0, 1], tolerance, 'bad contact_unit_vecs');
-%         
-%         ax = -1;
-%         ay = 0;
-%         theta = pi/2;
-%         i_unit = isurf_fcn(ax,ay,theta);
-%         j_unit = jsurf_fcn(ax,ay,theta);
-%         assert_near(i_unit, [0, -1, 0], tolerance, 'bad contact_unit_vecs');
-%         assert_near(j_unit, [-1, 0, 0], tolerance, 'bad contact_unit_vecs');
-%         
-%         ax = 1;
-%         ay = 0;
-%         theta = pi/2;
-%         i_unit = isurf_fcn(ax,ay,theta);
-%         j_unit = jsurf_fcn(ax,ay,theta);
-%         assert_near(i_unit, [0, 1, 0], tolerance, 'bad contact_unit_vecs');
-%         assert_near(j_unit, [1, 0, 0], tolerance, 'bad contact_unit_vecs');
-%         
-%     end
-
     function world_contact_velocity()
         tname('Contact point velocity.');
         %% FOR 0 THETA

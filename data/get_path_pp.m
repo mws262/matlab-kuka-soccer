@@ -34,7 +34,7 @@ switch path_name
     case 'small_arc'
         R = 0.1;
         offset = [0.5;0.1;0];
-        knots = [0,-R,0; R,0,0; 0, R,0]' + offset;
+        knots = [0,-R,0; 0.1*R,0,0; 0, R,0]' + offset;
         breaks = linspace(0, total_time, size(knots,2));
         path_pp = spline(breaks, [[0;0;0], knots, [0;0;0]]);
         return;       

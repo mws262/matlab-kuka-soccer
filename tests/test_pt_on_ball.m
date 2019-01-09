@@ -30,10 +30,10 @@ manipulator_tform = hgtransform;
 manipulator_patch.Parent = manipulator_tform;
 
 %% Pick a path polynomial.
-path_pp = get_path_pp('large_circle', 5);
+path_pp = get_path_pp('small_arc', 5);
 
 total_ts = 1000; % Total timesteps to evaluate at.
-arc_angle = pi/2.7; % Angle along the possible arc of the ball to contact.
+arc_angle = 0; % Angle along the possible arc of the ball to contact.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
@@ -50,7 +50,13 @@ surface_vel_span = cross(omegaspan, contact_desired_rel_com_span, 2);
 
 contact_pt_pl = plot(0,0,'.g','MarkerSize', 40);
 integrated_contact_pt_pl = plot(0,0,'.y', 'MarkerSize', 40);
-init_pt = world_contact_desired_span(1,:) + contact_desired_rel_com_span(1,:)/ball_radius * 0.02;
+
+norm_out = contact_desired_rel_com_span(1,:)/ball_radius;
+tan1 = cross([0,0,1], norm_out);
+tan2 = cross(norm_out, tan1);
+init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * 0.165 + tan2 * 0.11;
+%init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * -0.08 + tan2 * 0.00;
+
 
 pos = path_pp;
 vel = fnder(path_pp,1);

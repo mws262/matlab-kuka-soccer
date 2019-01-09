@@ -17,6 +17,8 @@ function derived_eqns = do_derivations()
 
 syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy sx sy wx wy wz wdx wdy wdz pusherX pusherY pusherZ fric_coeff theta thetadot thetadotdot real;
 syms g m I R positive;
+assumeAlso(ax ~= 0);
+assumeAlso(ay ~= 0);
 % g - gravity
 % m - ball mass
 % I - ball inertia (Not using a matrix since it's a ball)
@@ -108,20 +110,18 @@ contact_pt_rel_pusher_center = contact_pt_rel_world - pusher_center_rel_world; %
 % contact point location. Noteably the result depends on the jerk of the
 % ball trajectory. Integrating this quantity in time for position should follow the
 % contact point on the ball.
-contact_point_vel_rel_world = simplify(jacobian(contact_pt_rel_world,[rx, ry, vx, vy, ax, ay, theta]) * [vx, vy, ax, ay, jx, jy, thetadot]');
+pusherQ = [rx, ry, vx, vy, ax, ay, jx, jy, theta, thetadot];
+pusherQdot = [vx, vy, ax, ay, jx, jy, sx, sy, thetadot, thetadotdot];
+
+contact_point_vel_rel_world = simplify(jacobian(contact_pt_rel_world,pusherQ) * pusherQdot');
+
 pusher_angular_rate_world = simplify(cross(contact_pt_rel_ball_com, contact_point_vel_rel_world - Vcom_ball)/R^2); % (r x v)/|r|^2. Center velocity subtracted out.
 pusher_vel_rel_world = simplify(ball_surface_vel_rel_world + cross(pusher_angular_rate_world, -contact_pt_rel_pusher_center));
-pusher_accel_rel_world = simplify(jacobian(pusher_vel_rel_world, [rx, ry, vx, vy, ax, ay, jx, jy, theta, thetadot])*[vx, vy, ax, ay, jx, jy, sx, sy, thetadot, thetadotdot]');
+
+pusher_angular_accel_world = simplify(jacobian(pusher_angular_rate_world, pusherQ)*pusherQdot');
+pusher_accel_rel_world = simplify(jacobian(pusher_vel_rel_world, pusherQ)*pusherQdot');
 
 equator_contact_velocity = cross([wx,wy,wz], equator_pt_rel_com) + [vx, vy, 0];
-
-% NOTE: these have singularities.
-isurf = simplify(cross(k, -contact_pt_rel_ball_com/norm(contact_pt_rel_ball_com))); % Surface-aligned 'horizontal' component. Note cross( is,js) = vector pointing towards center of ball from contact point.
-isurf = simplify(isurf/norm(isurf));
-jsurf = simplify(cross(-contact_pt_rel_ball_com/norm(contact_pt_rel_ball_com), isurf)); % Surface-aligned 'vertical component'
-
-v_surfx = dot(ball_surface_vel_rel_world, isurf); % This finds the component of velocity
-v_surfy = dot(ball_surface_vel_rel_world, jsurf);
 
 %% Make functions for various symbolic equations.
 write_location = '../derived_autogen/'; % For writing to function files.
@@ -138,9 +138,6 @@ derived_eqns.world_contact_velocity_fcn = matlabFunction(ball_surface_vel_rel_wo
 derived_eqns.full_contact_velocity = matlabFunction(contact_point_vel_rel_world', 'File', strcat(write_location, 'full_contact_velocity_fcn'));
 derived_eqns.pusher_linear_velocity = matlabFunction(pusher_vel_rel_world', 'File', strcat(write_location, 'pusher_linear_velocity_fcn'));
 derived_eqns.pusher_angular_velocity = matlabFunction(pusher_angular_rate_world', 'File', strcat(write_location, 'pusher_angular_velocity_fcn'));
-
-derived_eqns.v_surfx_fcn = matlabFunction(v_surfx, 'File', strcat(write_location, 'v_surfx_fcn'));
-derived_eqns.v_surfy_fcn = matlabFunction(v_surfy, 'File', strcat(write_location, 'v_surfy_fcn'));
-derived_eqns.isurf_fcn = matlabFunction(isurf', 'File', strcat(write_location, 'isurf_fcn'));
-derived_eqns.jsurf_fcn = matlabFunction(jsurf', 'File', strcat(write_location, 'jsurf_fcn'));
+derived_eqns.pusher_linear_velocity = matlabFunction(pusher_accel_rel_world', 'File', strcat(write_location, 'pusher_linear_acceleration_fcn'));
+derived_eqns.pusher_angular_velocity = matlabFunction(pusher_angular_accel_world', 'File', strcat(write_location, 'pusher_angular_acceleration_fcn'));
 end
