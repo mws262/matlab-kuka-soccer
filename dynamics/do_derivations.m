@@ -15,7 +15,7 @@ function derived_eqns = do_derivations()
 %
 
 
-syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy sx sy wx wy wz wdx wdy wdz pusherX pusherY pusherZ fric_coeff theta thetadot thetadotdot real;
+syms fax fay faz fn ffx ffy rx ry vx vy ax ay jx jy sx sy wx wy wz wdx wdy wdz pusherX pusherY pusherZ pusherDx pusherDy pusherDz fric_coeff theta thetadot thetadotdot real;
 syms g m I R positive;
 assumeAlso(ax ~= 0);
 assumeAlso(ay ~= 0);
@@ -110,18 +110,42 @@ contact_pt_rel_pusher_center = contact_pt_rel_world - pusher_center_rel_world; %
 % contact point location. Noteably the result depends on the jerk of the
 % ball trajectory. Integrating this quantity in time for position should follow the
 % contact point on the ball.
-pusherQ = [rx, ry, vx, vy, ax, ay, jx, jy, theta, thetadot];
-pusherQdot = [vx, vy, ax, ay, jx, jy, sx, sy, thetadot, thetadotdot];
+pusherQ = [rx, ry, vx, vy, ax, ay, jx, jy, theta, thetadot, pusherX, pusherY, pusherZ];
+pusherQdot = [vx, vy, ax, ay, jx, jy, sx, sy, thetadot, thetadotdot, pusherDx, pusherDy, pusherDz];
 
 contact_point_vel_rel_world = simplify(jacobian(contact_pt_rel_world,pusherQ) * pusherQdot');
 
 pusher_angular_rate_world = simplify(cross(contact_pt_rel_ball_com, contact_point_vel_rel_world - Vcom_ball)/R^2); % (r x v)/|r|^2. Center velocity subtracted out.
 pusher_vel_rel_world = simplify(ball_surface_vel_rel_world + cross(pusher_angular_rate_world, -contact_pt_rel_pusher_center));
 
-pusher_angular_accel_world = simplify(jacobian(pusher_angular_rate_world, pusherQ)*pusherQdot');
-pusher_accel_rel_world = simplify(jacobian(pusher_vel_rel_world, pusherQ)*pusherQdot');
+pusher_angular_accel_world = simplify(jacobian(pusher_angular_rate_world, pusherQ) * pusherQdot');
+pusher_accel_rel_world = simplify(subs(jacobian(pusher_vel_rel_world, pusherQ)*pusherQdot', [pusherDx, pusherDy, pusherDz], [pusher_vel_rel_world(1), pusher_vel_rel_world(2), pusher_vel_rel_world(3)]));
 
 equator_contact_velocity = cross([wx,wy,wz], equator_pt_rel_com) + [vx, vy, 0];
+
+
+% syms acoefx bcoefx ccoefx dcoefx acoefy bcoefy ccoefy dcoefy t real;
+% rx = acoefx*t^3 + bcoefx*t^2 + ccoefx*t + dcoefx;
+% ry = acoefy*t^3 + bcoefy*t^2 + ccoefy*t + dcoefy;
+% vx = diff(rx, t);
+% vy = diff(ry, t);
+% ax = diff(vx, t);
+% ay = diff(vy, t);
+% jx = diff(ax, t);
+% jy = diff(ay, t);
+% sx = diff(jx, t); % Should be 0.
+% sy = diff(jy, t);
+% 
+% 
+% contact_pt_rel_world = eval(contact_pt_rel_world);
+% contact_pt_rel_ball_com = eval(contact_pt_rel_ball_com);
+% ball_surface_vel_rel_world = eval(ball_surface_vel_rel_world);
+% contact_pt_rel_pusher_center = eval(contact_pt_rel_pusher_center);
+% 
+% contact_point_vel_rel_world = diff(contact_pt_rel_world, t);
+% 
+% pusher_angular_rate_world = simplify(cross(contact_pt_rel_ball_com, contact_point_vel_rel_world - [vx; vy; 0])/R^2);
+% pusher_vel_rel_world = simplify(ball_surface_vel_rel_world + cross(pusher_angular_rate_world, -contact_pt_rel_pusher_center));
 
 %% Make functions for various symbolic equations.
 write_location = '../derived_autogen/'; % For writing to function files.

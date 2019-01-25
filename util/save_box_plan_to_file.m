@@ -1,5 +1,5 @@
 function save_box_plan_to_file(foldername, timings, box_positions, box_quats, box_linear_vel, box_angular_vel, ...
-    ball_com_positions, ball_com_velocities, ball_com_accelerations, ball_quats, ball_omegas, ...
+    box_linear_accel, box_angular_accel, ball_com_positions, ball_com_velocities, ball_com_accelerations, ball_quats, ball_omegas, ...
     contact_pt_positions, contact_pt_velocities, contact_status, notes)
 mkdir(foldername);
 
@@ -33,6 +33,8 @@ save(['./', foldername, '/box_positions.mat'], 'box_positions', '-ascii', '-doub
 save(['./', foldername, '/box_quats.mat'], 'box_quats', '-ascii', '-double');
 save(['./', foldername, '/box_linear_vel.mat'], 'box_linear_vel', '-ascii', '-double');
 save(['./', foldername, '/box_angular_vel.mat'], 'box_angular_vel', '-ascii', '-double');
+save(['./', foldername, '/box_linear_accel.mat'], 'box_linear_accel', '-ascii', '-double');
+save(['./', foldername, '/box_angular_accel.mat'], 'box_angular_accel', '-ascii', '-double');
 
 % save doesn't like to write logic values, so we're going to do it by hand
 % here.

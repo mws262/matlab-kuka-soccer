@@ -30,10 +30,10 @@ manipulator_tform = hgtransform;
 manipulator_patch.Parent = manipulator_tform;
 
 %% Pick a path polynomial.
-path_pp = get_path_pp('small_arc', 5);
+path_pp = get_path_pp('large_circle', 5);
 
 total_ts = 1000; % Total timesteps to evaluate at.
-arc_angle = 0; % Angle along the possible arc of the ball to contact.
+arc_angle = pi/2.7; % Angle along the possible arc of the ball to contact.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
@@ -54,8 +54,9 @@ integrated_contact_pt_pl = plot(0,0,'.y', 'MarkerSize', 40);
 norm_out = contact_desired_rel_com_span(1,:)/ball_radius;
 tan1 = cross([0,0,1], norm_out);
 tan2 = cross(norm_out, tan1);
-init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * 0.165 + tan2 * 0.11;
+% init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * 0.165 + tan2 * 0.11;
 %init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * -0.08 + tan2 * 0.00;
+init_pt = world_contact_desired_span(1,:) + contact_desired_rel_com_span(1,:)/ball_radius * 0.02;
 
 
 pos = path_pp;
@@ -112,13 +113,18 @@ box_vel = pusher_linear_velocity_fcn(ball_radius, accelspan(:, 1), accelspan(:, 
 % Find the angular velocity of the pushing surface.
 box_omega = pusher_angular_velocity_fcn(accelspan(:, 1), accelspan(:, 2), jerkspan(:, 1), ...
         jerkspan(:, 2), 0, arc_angle);
+    
+box_accel = pusher_linear_acceleration_fcn(ball_radius, accelspan(:, 1), accelspan(:, 2), jerkspan(:, 1), jerkspan(:, 2), box_pos(:, 1), box_pos(:, 2), box_pos(:, 3),...
+    posspan(:, 1), posspan(:, 2), 0, 0, 0, arc_angle, 0, velspan(:, 1), velspan(:, 2));
+
+box_alpha = pusher_angular_acceleration_fcn(accelspan(:, 1), accelspan(:, 2), jerkspan(:, 1), jerkspan(:, 2), 0, 0, 0, arc_angle, 0);
 
 draw_path_and_accel(posspan, accelspan, 3);
 
 world_contact_desired_vel = surface_vel_span + velspan;
 
 notes = 'Pushing box is a rectangular prism with xyz dimensions of 0.4, 0.04, 0.4. Untransformed, the box is centered about the origin. The ball radius is 0.1. Contact point positions are relative to the world origin.';
-save_box_plan_to_file('box_oval', tspan, box_pos, box_quat, box_vel, box_omega, ...
+save_box_plan_to_file('box_oval', tspan, box_pos, box_quat, box_vel, box_omega, box_accel, box_alpha,...
     posspan + [0, 0, ball_radius], velspan, accelspan, quatspan, omegaspan, ...
     world_contact_desired_span, world_contact_desired_vel, ones(size(tspan)), notes);
 
