@@ -30,10 +30,10 @@ manipulator_tform = hgtransform;
 manipulator_patch.Parent = manipulator_tform;
 
 %% Pick a path polynomial.
-path_pp = get_path_pp('small_arc', 3);
+path_pp = get_path_pp('large_circle', 5);
 
 total_ts = 1000; % Total timesteps to evaluate at.
-arc_angle = 0; % Angle along the possible arc of the ball to contact.
+arc_angle = pi/2.7; % Angle along the possible arc of the ball to contact.
 
 %% Evaluate ball and contact point quantities.
 [tspan, posspan, velspan, accelspan, omegaspan, quatspan, ...
@@ -55,8 +55,8 @@ norm_out = contact_desired_rel_com_span(1,:)/ball_radius;
 tan1 = cross([0,0,1], norm_out);
 tan2 = cross(norm_out, tan1);
 % init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * 0.165 + tan2 * 0.11;
-init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * 0 + tan2 * 0.15;
-% init_pt = world_contact_desired_span(1,:) + contact_desired_rel_com_span(1,:)/ball_radius * 0.02;
+%init_pt = world_contact_desired_span(1,:) + norm_out * 0.02 + tan1 * -0.08 + tan2 * 0.00;
+init_pt = world_contact_desired_span(1,:) + contact_desired_rel_com_span(1,:)/ball_radius * 0.02;
 
 
 pos = path_pp;
@@ -124,7 +124,7 @@ draw_path_and_accel(posspan, accelspan, 3);
 world_contact_desired_vel = surface_vel_span + velspan;
 
 notes = 'Pushing box is a rectangular prism with xyz dimensions of 0.4, 0.04, 0.4. Untransformed, the box is centered about the origin. The ball radius is 0.1. Contact point positions are relative to the world origin.';
-save_box_plan_to_file('box_curve', tspan, box_pos, box_quat, box_vel, box_omega, box_accel, box_alpha,...
+save_box_plan_to_file('box_oval', tspan, box_pos, box_quat, box_vel, box_omega, box_accel, box_alpha,...
     posspan + [0, 0, ball_radius], velspan, accelspan, quatspan, omegaspan, ...
     world_contact_desired_span, world_contact_desired_vel, ones(size(tspan)), notes);
 
@@ -137,7 +137,7 @@ save_box_plan_to_file('box_curve', tspan, box_pos, box_quat, box_vel, box_omega,
 % ctact_box_center = box_pos - world_contact_desired_span;
 % b = max(0.02 - dot(ctact_box_center, ball_cent_ctact,2)) % should be 0.
 
-for i = 1:2:length(tspan) - 1
+for i = 1:1:length(tspan) - 1
     quat = quatspan(i,:);
     ball_patch.Vertices = quatrotate(quat, ball_verts_untransformed) + repmat(posspan(i,:)  + [0, 0, ball_radius], [size(ball_verts_untransformed,1),1]);
         

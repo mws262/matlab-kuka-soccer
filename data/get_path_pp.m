@@ -32,11 +32,11 @@ switch path_name
         path_pp = spline(breaks, [[0;0;0], knots, [0;0;0]]);
         return;
     case 'small_arc'
-        R = 0.1;
-        offset = [0.5;0.1;0];
-        knots = [0,-R,0; 0.1*R,0,0; 0, R,0]' + offset;
+        R = 0.3;
+%         offset = [0.5;0.1;0];
+        knots = [0,-0.5*R,0; 0.15*R,0,0; 0, 0.5*R,0]';% + offset;
         breaks = linspace(0, total_time, size(knots,2));
-        path_pp = spline(breaks, [[0;0;0], knots, [0;0;0]]);
+        path_pp = csape(breaks,  knots, 'not-a-knot');
         return;       
     case 'small_arc_knot'
         R = 0.1;
@@ -48,6 +48,12 @@ switch path_name
     case 'large_circle'
         R = 0.1;
         knots = [0,0,0; R+0.1,0,0; 0,2*R,0; -R-0.05,R + 0.07,0;0,0,0]' + [0.1,0.1,0]';
+        breaks = linspace(0, total_time, size(knots,2));
+        path_pp = csape(breaks, knots, 'periodic');
+        return;
+    case 'small_circle'
+        R = 0.02;
+        knots = [0,0,0; R,0,0; 0,2*R,0; -R,0,0]';
         breaks = linspace(0, total_time, size(knots,2));
         path_pp = csape(breaks, knots, 'periodic');
         return;
