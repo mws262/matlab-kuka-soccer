@@ -151,6 +151,8 @@ equator_contact_velocity = cross([wx,wy,wz], equator_pt_rel_com) + [vx, vy, 0];
 write_location = '../derived_autogen/'; % For writing to function files.
 
 derived_eqns.friction_required_fcn = matlabFunction(friction_required, 'File', strcat(write_location, 'friction_required_fcn'));
+derived_eqns.friction_required_fcn = matlabFunction(friction_actual_max, 'File', strcat(write_location, 'max_available_friction_fcn'));
+
 derived_eqns.x_force_required_fcn = matlabFunction(fax_solve, 'File', strcat(write_location, 'x_force_required_fcn')); % Required x component of force applied by arm.
 derived_eqns.y_force_required_fcn = matlabFunction(fay_solve, 'File', strcat(write_location, 'y_force_required_fcn'));
 derived_eqns.angular_rate_wx_fcn = matlabFunction(wx, 'File', strcat(write_location, 'angular_rate_wx_fcn'));

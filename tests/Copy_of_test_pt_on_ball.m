@@ -103,6 +103,17 @@ box_quat = qarray(:, 4:7);
 %     box_accel(i,:) = planeRHS(tarray(i), qarray(i,:)')'
 % end
 
+% Check ball/ground friction.
+mass = 0.42;
+I = 0.00137;
+g = 9.81
+fric_coeff = 0.1;
+friction_required = friction_required_fcn(I,ball_radius,accelspan(:, 1), accelspan(:, 2));
+friction_actual_max = max_available_friction_fcn(I, ball_radius, accelspan(:, 1), accelspan(:, 2),fric_coeff,g,mass, arc_angle);
+if any(friction_required > friction_actual_max)
+   error('plan failed due to insufficient ground/ball friction'); 
+end
+
 
 
 % Find linear velocity of the pushing surface.
