@@ -32,7 +32,7 @@ manipulator_patch.Parent = manipulator_tform;
 %% Pick a path polynomial.
 path_pp = get_path_pp('large_circle', 5);
 
-total_ts = 1000; % Total timesteps to evaluate at.
+total_ts = 500; % Total timesteps to evaluate at.
 arc_angle = pi/2.7; % Angle along the possible arc of the ball to contact.
 
 %% Evaluate ball and contact point quantities.
